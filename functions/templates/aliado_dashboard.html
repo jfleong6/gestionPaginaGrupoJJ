@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin | Grupo JJ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+<header class="header">
+    <h1>Panel de Administración</h1>
+    <a href="/logout" class="logout">Cerrar sesión</a>
+</header>
+
+<main class="content">
+    <p>Bienvenido, <strong>{{ datos.nombre }}</strong></p>
+    <p>Rol: <strong>{{ datos.role }}</strong></p>
+
+    <section class="card">
+        <h2>Gestión general</h2>
+        <p>Desde aquí podrás administrar usuarios, aliados y configuraciones del sistema.</p>
+    </section>
+
+    <section class="card">
+        <h2>Estado del sistema</h2>
+        <p>Todo funciona correctamente.</p>
+    </section>
+</main>
+
+</body>
+</html>
