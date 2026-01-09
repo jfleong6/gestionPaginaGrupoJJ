@@ -1,0 +1,318 @@
+/* Contenedor principal en Grid */
+.proyectos-container {
+    padding: 20px;
+    position: relative;
+    min-height: 80vh;
+}
+
+.proyectos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Tarjeta de Proyecto Estilo Notificación */
+.proyecto-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-top: 4px solid var(--accent);
+    transition: 0.3s ease;
+}
+
+.proyecto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.project-logo {
+    width: 50px;
+    height: 50px;
+    background: #f0f7ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--accent);
+}
+
+.project-title-info h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #1e293b;
+}
+
+.project-title-info p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 2px 0 0;
+}
+
+.project-details {
+    font-size: 0.9rem;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Botón Flotante para Agregar */
+.btn-add-float {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+    cursor: pointer;
+    border: none;
+    z-index: 99;
+    transition: 0.3s;
+}
+
+.btn-add-float:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* Estilos de inputs en el Modal */
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* Paleta de Marca Profesional */
+.branding-container {
+    background: #f1f5f9;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+}
+
+.font-preview-box {
+    margin-top: 10px;
+    padding: 15px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #1e293b;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botón de ubicación estilo moderno */
+.btn-location {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 5px;
+    transition: 0.3s;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.btn-location:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.btn-location i {
+    color: #ef4444;
+    margin-right: 5px;
+}
+
+/* Grid de colores mejorado */
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* Layout del Formulario en 2 Columnas */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Dos columnas iguales */
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.full-row {
+    grid-column: span 2;
+}
+
+/* Para títulos o campos largos */
+
+/* Sección de Colores Mejorada */
+.palette-selection {
+    display: flex;
+    justify-content: space-between;
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.color-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-block input[type="color"] {
+    -webkit-appearance: none;
+    border: 3px solid #fff;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px #cbd5e1;
+    /* Borde de "no seleccionado" */
+    transition: 0.3s;
+}
+
+.color-block input[type="color"]:hover {
+    transform: scale(1.1);
+}
+
+/* Cuando el color cambia, usaremos JS para ponerle un borde azul al círculo */
+.color-selected {
+    box-shadow: 0 0 0 3px #3b82f6 !important;
+}
+
+.color-code {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+
+/* Contenedor de Etapas */
+.step-container {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.step-container.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Indicador de Progreso (Bolas arriba) */
+.stepper-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.step-dot {
+    width: 35px;
+    height: 35px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #64748b;
+    z-index: 2;
+    transition: 0.3s;
+}
+
+.step-dot.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
+}
+
+/* Botonera inferior */
+.modal-footer-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Ajuste móvil */
+@media (max-width: 600px) {
+    .modal-content {
+        height: 100%;
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    /* Una columna en móvil */
+    .modal-body-scroll {
+        height: calc(100vh - 180px);
+        overflow-y: auto;
+        padding: 10px;
+    }
+}

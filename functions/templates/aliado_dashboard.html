@@ -1,31 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin | Grupo JJ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/inicio.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/clientes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/proyectos.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
-<header class="header">
-    <h1>Panel de Administración</h1>
-    <a href="/logout" class="logout">Cerrar sesión</a>
-</header>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-circle">JJ</div>
+                <h2>Grupo JJ</h2>
+            </div>
 
-<main class="content">
-    <p>Bienvenido, <strong>{{ datos.nombre }}</strong></p>
-    <p>Rol: <strong>{{ datos.role }}</strong></p>
+            <nav class="sidebar-nav">
+                <div class="nav-top">
+                    <a href="#" class="nav-link active" data-section="inicio">
+                        <i class="fa-solid fa-chart-line"></i> <span>Inicio</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="clientes">
+                        <i class="fa-solid fa-users"></i> <span>Clientes</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="proyectos">
+                        <i class="fa-solid fa-folder-open"></i> <span>Proyectos</span>
+                    </a>
+                </div>
 
-    <section class="card">
-        <h2>Gestión general</h2>
-        <p>Desde aquí podrás administrar usuarios, aliados y configuraciones del sistema.</p>
-    </section>
+                <div class="nav-bottom">
+                    <div class="user-info">
+                        <div class="user-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                        <div class="user-details">
+                            <p class="user-name">{{ datos.nombre }}</p>
+                            <span class="user-role">Aliado</span>
+                        </div>
+                    </div>
+                    <a href="/logout" class="nav-link logout-btn">
+                        <i class="fa-solid fa-power-off"></i> <span>Cerrar sesión</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
 
-    <section class="card">
-        <h2>Estado del sistema</h2>
-        <p>Todo funciona correctamente.</p>
-    </section>
-</main>
+        <main class="main-content">
+            <header class="top-bar">
+                <button id="toggle-sidebar" class="mobile-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 id="section-title">Inicio</h1>
+            </header>
+
+            <div id="content-area" class="content">
+                <div class="loader">Cargando panel...</div>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/inicio.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/clientes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/proyectos.js') }}"></script>
 
 </body>
+
 </html>

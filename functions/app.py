@@ -39,6 +39,9 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
+
+from rutas_aliado import aliado_bp
+app.register_blueprint(aliado_bp, url_prefix='/aliado')
 # --- Rutas ---
 
 @app.route('/')

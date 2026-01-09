@@ -37,7 +37,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         }
         
         const result = await response.json();
-        alert("hola: "+result.status+" rol: "+result.role);
         if (result.status === 'success') {
             window.location.href = '/dashboard';
         }
