@@ -125,9 +125,13 @@ class ModuloProyectos {
                         <div class="step-container" id="step-4">
                             <h4 class="section-title">4. Recursos Finales</h4>
                             <div class="form-grid-2">
-                                <div class="input-group full-row">
+                                <div class="input-group">
                                     <label>URL del Logo / Icono</label>
                                     <input type="text" id="p-logo" placeholder="Enlace directo a la imagen">
+                                </div>
+                                <div class="input-group">
+                                    <label>Observaciones /notas</label>
+                                    <input type="text" id="p-observaciones" placeholder="Observaciones o notas adicionales">
                                 </div>
                                 <div class="input-group">
                                     <label>Ubicación (Google Maps)</label>
@@ -138,15 +142,16 @@ class ModuloProyectos {
                                         <i class="fa-solid fa-location-crosshairs"></i> GPS Actual
                                     </button>
                                 </div>
+                                
                             </div>
                         </div>
 
                         <div class="modal-footer-steps">
                             <button type="button" class="btn-secondary" id="prev-step" style="visibility: hidden;">Anterior</button>
-                            <div>
+                            <div class="modal-footer-right">
                                 <button type="button" class="btn-secondary" id="close-project-modal">Cancelar</button>
                                 <button type="button" class="btn-primary" id="next-step">Siguiente</button>
-                                <button type="submit" class="btn-success" id="final-submit" style="display: none;">
+                                <button type="submit" class="btn-success btn-primary" id="final-submit" style="display: none;">
                                     <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Proyecto
                                 </button>
                             </div>
@@ -249,7 +254,8 @@ class ModuloProyectos {
                 recursos: {
                     logo_url: document.getElementById('p-logo').value,
                     mapa_url: document.getElementById('p-mapa').value
-                }
+                },
+                oboservaciones: document.getElementById('p-observaciones').value
             };
 
             try {
@@ -333,12 +339,16 @@ class ModuloProyectos {
                     </div>
                     <div class="project-footer">
                         <span class="status-badge status-ok">${p.estado || 'Activo'}</span>
-                        <button class="btn-icon"><i class="fa-solid fa-gear"></i></button>
+                        <button class="btn-icon" onclick="iniciarGestion('${p.proyecto_id}', '${p.cliente_id}')">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
         } catch (e) { grid.innerHTML = '<p>Error al cargar proyectos.</p>'; }
     }
+
+    
 }
 
 /**

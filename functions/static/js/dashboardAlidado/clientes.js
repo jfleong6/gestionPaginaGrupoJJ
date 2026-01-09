@@ -111,8 +111,8 @@ class ModuloClientes {
             <td>${cli.nombre}</td>
             <td>${cli.proyectos_conteo || 0} proyectos</td> 
             <td>
-                <span class="status-badge ${cli.deuda ? 'status-debt' : 'status-ok'}">
-                    ${cli.deuda ? 'Pendiente' : 'Al día'}
+                <span class="status-badge ${cli.deuda ?  'status-ok': 'status-debt'}">
+                    ${cli.deuda ? 'Al día': 'Pendiente' }
                 </span>
             </td>
             <td>

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from firebase_admin import firestore
-
+import datetime
 aliado_bp = Blueprint('aliado', __name__)
 db = firestore.client()
 
@@ -94,7 +94,7 @@ def obtener_todos_los_proyectos():
 
             for proy_doc in proyectos_ref:
                 proyecto = proy_doc.to_dict()
-                proyecto['id'] = proy_doc.id
+                proyecto['proyecto_id'] = proy_doc.id
                 proyecto['cliente_id'] = cliente_id
                 proyecto['cliente_nombre'] = cliente_nombre # Para saber de quién es el proyecto
                 proyectos_globales.append(proyecto)
@@ -107,7 +107,6 @@ def obtener_todos_los_proyectos():
     
 @aliado_bp.route('/crear_proyecto/<cliente_id>', methods=['POST'])
 def crear_proyecto(cliente_id):
-    # 1. Verificar sesión
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Sesión no válida"}), 401
     
@@ -115,46 +114,57 @@ def crear_proyecto(cliente_id):
         uid_aliado = session.get('user')
         data = request.get_json()
 
-        # 2. Estructurar el documento según lo enviado por el JS
-        # Mantenemos la organización por categorías para que sea fácil de leer después
+
         nuevo_proyecto = {
             "nombre_negocio": data.get('nombre_negocio'),
             "categoria": data.get('categoria'),
             "eslogan": data.get('eslogan'),
-            
-            # Sub-diccionarios que vienen del payload de JS
-            "contacto": data.get('contacto'), # whatsapp, email, instagram, social_extra
-            "branding": data.get('branding'), # colores (lista), fuente
-            "recursos": data.get('recursos'), # logo_url, mapa_url
-            
-            # Metadatos del sistema
-            "fecha_creacion": firestore.SERVER_TIMESTAMP,
+            "contacto": data.get('contacto'), 
+            "branding": data.get('branding'), 
+            "recursos": data.get('recursos'), 
+            "observaciones": data.get('observaciones'),
+            "fecha_creacion": firestore.SERVER_TIMESTAMP, # Para ordenamiento exacto
+            "fecha_display": datetime.datetime.now(), # Para mostrar al usuario
             "estado": "activo",
-            "aliado_propietario": uid_aliado
+            "aliado_propietario": uid_aliado,
+            "deuda": False
         }
 
-        # 3. Guardar en la ruta jerárquica: users -> aliado -> clientes -> cliente -> proyectos
-        doc_ref = db.collection('users').document(uid_aliado)\
-                    .collection('clientes').document(cliente_id)\
-                    .collection('proyectos').add(nuevo_proyecto)
+        # 3. Guardar en ruta jerárquica
+        # .add() devuelve (timestamp, doc_reference)
+        update_time, doc_ref = db.collection('users').document(uid_aliado)\
+                                 .collection('clientes').document(cliente_id)\
+                                 .collection('proyectos').add(nuevo_proyecto)
 
-        # 4. (Opcional) Incrementar el contador de proyectos en el cliente
-        # Esto hace que la tabla de clientes se actualice automáticamente
+        nuevo_proyecto_id = doc_ref.id # <--- ID Correcto
+
+        # 4. Actualizar contador en el cliente
         db.collection('users').document(uid_aliado)\
           .collection('clientes').document(cliente_id).update({
               "proyectos_conteo": firestore.Increment(1)
           })
+        
+        # 5. CREAR COLECCIÓN RAÍZ 'proyectos'
+        # Añadimos el nombre del negocio también aquí para facilitar búsquedas globales
+        db.collection('proyectos').document(nuevo_proyecto_id).set({
+            "proyecto_id": nuevo_proyecto_id,
+            "nombre_negocio": data.get('nombre_negocio'),
+            "cliente_id": cliente_id,
+            "aliado_id": uid_aliado,
+            "deuda": False,
+            "fecha_registro": firestore.SERVER_TIMESTAMP
+        })
 
         return jsonify({
             "status": "success", 
             "message": "Proyecto creado exitosamente",
-            "proyecto_id": doc_ref[1].id
+            "proyecto_id": nuevo_proyecto_id
         }), 200
 
     except Exception as e:
         print(f"Error en crear_proyecto: {str(e)}")
-        return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
-    
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @aliado_bp.route('/obtener_estadisticas', methods=['GET'])
 def obtener_estadisticas():
     if 'user' not in session:
@@ -192,4 +202,42 @@ def obtener_estadisticas():
             }
         }), 200
     except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@aliado_bp.route('/obtener_proyecto/<string:id_proyecto>', methods=['GET'])
+def obtener_proyecto(id_proyecto):
+    # print(f"Solicitud para obtener proyecto ID: {id_proyecto}")
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    
+    try:
+        uid_aliado = session.get('user')
+        
+        # 1. Consultamos la colección global 'proyectos'
+        proyecto_ref = db.collection('proyectos').document(id_proyecto).get()
+
+        if not proyecto_ref.exists:
+            return jsonify({"status": "error", "message": "Proyecto no encontrado"}), 404
+
+        proyecto_data = proyecto_ref.to_dict()
+
+        # 2. Seguridad: Verificar que el proyecto pertenece al aliado que consulta
+        if proyecto_data.get('aliado_id') != uid_aliado:
+            return jsonify({"status": "error", "message": "Acceso denegado"}), 403
+
+        # 3. (Opcional) Si necesitas los datos extra que están en la subcolección del cliente
+        # Aquí sí usamos la ruta jerárquica
+        cliente_id = proyecto_data.get('cliente_id')
+        detalles_ref = db.collection('users').document(uid_aliado)\
+                         .collection('clientes').document(cliente_id)\
+                         .collection('proyectos').document(id_proyecto).get()
+        
+        # Combinamos ambos diccionarios
+        data_completa = {**proyecto_data, **detalles_ref.to_dict()}
+        print(data_completa)
+
+        return jsonify({"status": "success", "proyecto": data_completa}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500

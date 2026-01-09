@@ -7,20 +7,22 @@
 
 .proyectos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
 }
 
 /* Tarjeta de Proyecto Estilo Notificación */
 .proyecto-card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
+    background: rgba(182, 182, 182, 0.25);
+    border-radius: 20px;
+    padding: 5px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     border-top: 4px solid var(--accent);
+    border-bottom: 5px solid var(#64748b);
+
     transition: 0.3s ease;
 }
 
@@ -32,7 +34,9 @@
 .card-header {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
 }
 
 .project-logo {
@@ -56,13 +60,13 @@
 .project-title-info p {
     font-size: 0.85rem;
     color: #64748b;
-    margin: 2px 0 0;
+    margin: 0;
 }
 
 .project-details {
     font-size: 0.9rem;
     background: #f8fafc;
-    padding: 10px;
+    padding-left: 5px;
     border-radius: 8px;
 }
 
@@ -116,9 +120,11 @@
 
 .input-group input,
 .input-group select {
-    width: 100%;
+    width: 90%;
+    margin: 2vw;
     padding: 10px;
     border: 1px solid #e2e8f0;
+    border-bottom: 1px solid #3e4144;
     border-radius: 8px;
     outline: none;
 }
@@ -295,6 +301,24 @@
     padding-top: 20px;
     border-top: 1px solid #e2e8f0;
 }
+.btn-secondary{
+    background: #80b8f7;
+    border-radius: 8px;
+    padding: 10px 20px;
+    border: 0;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.8s ease;
+    transition: cursor 0.8s ease;
+    transition: box-shadow 0.8s ease;
+}
+
+.btn-secondary:hover{
+    background: #067aff;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
+}
+
+
 
 /* Ajuste móvil */
 @media (max-width: 600px) {
