@@ -1,5 +1,3 @@
-
-
 class GestionProyecto {
     constructor(containerId, proyecto) {
         this.container = document.getElementById(containerId);
@@ -12,13 +10,15 @@ class GestionProyecto {
         this.render();
         this.loadTasks();
         this.setupBtnsAgregarTarea();
-        this.setupFormularioTask();
+        this.setupFormularioTask(); 
+        this.setupFormularioNotas();
+
     }
     render() {
         this.container.innerHTML = `
             <div class="gestion-container">
                 <div class="gestion-header">
-                    <button class="tab-link active" onclick="gp.cambiarTab(this, 'task')">Tareas</button>
+                    <button class="tab-link gp-active" onclick="gp.cambiarTab(this, 'task')">Tareas</button>
                     <button class="tab-link " onclick="gp.cambiarTab(this, 'info')">Información</button>
                     <button class="tab-link" onclick="gp.cambiarTab(this, 'pagos')">Pagos</button>
                 </div>
@@ -28,7 +28,7 @@ class GestionProyecto {
                         <div class="task-column" id="todoColumn">
                             <div class="column-header">
                                 <h3><i class="fas fa-circle"></i> Por hacer</h3>
-                                <span class="task-count" id="todoCount"></span>
+                                <span class="task-count" id="todoCount">0</span>
                             </div>
                             <div class="task-list" id="todoList" data-status="todo">
                             </div>
@@ -43,7 +43,7 @@ class GestionProyecto {
                         <div class="task-column" id="progressColumn">
                             <div class="column-header">
                                 <h3><i class="fas fa-spinner"></i> En progreso</h3>
-                                <span class="task-count" id="progressCount"></span>
+                                <span class="task-count" id="progressCount">0</span>
                             </div>
                             <div class="task-list" id="progressList" data-status="progress">
                             </div>
@@ -65,7 +65,7 @@ class GestionProyecto {
                         <div class="task-column" id="doneColumn">
                             <div class="column-header">
                                 <h3><i class="fas fa-check-circle"></i> Completadas</h3>
-                                <span class="task-count" id="doneCount"></span>
+                                <span class="task-count" id="doneCount">0</span>
                             </div>
                             <div class="task-list" id="doneList" data-status="done">
 
@@ -83,7 +83,8 @@ class GestionProyecto {
                 </div>
 
             </div>
-            </div> <div id="modal-overlay-task" class="modal-overlay hidden">
+            </div> 
+            <div id="modal-overlay-task" class="modal-overlay hidden">
             <div class="modal-content animate__animated animate__zoomIn">
                 <div class="modal-header">
                     <h3><i class="fas fa-plus"></i> Nueva Tarea</h3>
@@ -112,7 +113,7 @@ class GestionProyecto {
                         <label><i class="fas fa-flag"></i> Prioridad</label>
                         <div class="priority-selector">
                             <button type="button" class="priority-btn low" onclick="gp.setPriority(this, 'low')">Baja</button>
-                            <button type="button" class="priority-btn medium active" onclick="gp.setPriority(this, 'medium')">Media</button>
+                            <button type="button" class="priority-btn medium gp-active" onclick="gp.setPriority(this, 'medium')">Media</button>
                             <button type="button" class="priority-btn high" onclick="gp.setPriority(this, 'high')">Alta</button>
                         </div>
                     </div>
@@ -122,13 +123,30 @@ class GestionProyecto {
                 </form>
             </div>
         </div>
+        <div id="modal-overlay-task-notas" class="modal-overlay hidden">
+            <div class="modal-content animate__animated animate__zoomIn">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> Nueva Nota</h3>
+                    <button class="close-modal" onclick="gp.cerrarModalNota()">&times;</button>
+                </div>
+                <form id="taskFormNote" class="task-form">
+                    <div class="form-group">
+                        <input type="text" id="taskNote" placeholder="Nueva nota" required>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-plus-circle"></i> Agregar Nota
+                    </button>
+                </form>
+                
+            </div>
+        </div>
 `;
     }
 
     cambiarTab(btn, tabName) {
         // 1. Estética de botones
-        document.querySelectorAll('.tab-link').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        document.querySelectorAll('.tab-link').forEach(b => b.classList.remove('gp-active'));
+        btn.classList.add('gp-active');
 
         // 2. Ocultar todos los contenidos
         document.querySelectorAll('.gestion-content').forEach(content => {
@@ -155,7 +173,9 @@ class GestionProyecto {
             this.selectedPriority = 'medium'; // Reset prioridad
             document.getElementById('modal-overlay-task').classList.remove('hidden');
         });
+
     }
+
 
     cerrarModal() {
         document.getElementById('modal-overlay-task').classList.add('hidden');
@@ -165,34 +185,75 @@ class GestionProyecto {
     setPriority(btn, level) {
         this.selectedPriority = level;
         // Estética de botones
-        document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('gp-active'));
+        btn.classList.add('gp-active');
     }
 
     setupFormularioTask() {
-        const form = document.getElementById('taskForm');
+    const form = document.getElementById('taskForm');
+    if (!form) return;
+
+    form.onsubmit = async (e) => { // Usar onsubmit evita duplicidad de eventos
+        e.preventDefault();
+
+        const payload = {
+            id_cliente: this.p.cliente_id,
+            id_proyecto: this.p.proyecto_id,
+            titulo: document.getElementById('taskTitle').value,
+            descripcion: document.getElementById('taskDescription').value,
+            categoria: document.getElementById('taskCategory').value,
+            prioridad: this.selectedPriority || 'medium',
+            status: 'todo', // Importante para que renderizarTarea sepa dónde ponerla
+            historial_notas: [] // Evita errores al intentar leer notas inexistentes
+        };
+
+        try {
+            const res = await fetch('/aliado/agregar_tarea', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json(); // <--- Obtener el JSON del servidor
+
+            if (res.ok && data.status === "success") {
+                this.cerrarModal();
+                // Renderizado local inmediato
+                this.renderizarTarea({
+                    ...payload, 
+                    id: data.tarea_id // Usar el ID real devuelto por Firestore
+                }); 
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+}
+
+    setupFormularioNotas() {
+        const form = document.getElementById('taskFormNote');
+
         form.addEventListener('submit', async (e) => {
+
+
             e.preventDefault();
 
             const payload = {
                 id_cliente: this.p.cliente_id, // Asegúrate que sea cliente_id o id según tu objeto
                 id_proyecto: this.p.proyecto_id, // Asegúrate que sea proyecto_id o id según tu objeto
-                titulo: document.getElementById('taskTitle').value,
-                descripcion: document.getElementById('taskDescription').value,
-                categoria: document.getElementById('taskCategory').value,
-                prioridad: this.selectedPriority || 'medium'
+                id_tarea: this.taskId,
+                nota: document.getElementById('taskNote').value
             };
-
             try {
-                const res = await fetch('/aliado/agregar_tarea', {
+                const res = await fetch('/aliado/agregar_nota', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (res.ok) {
-                    this.cerrarModal();
-                    this.loadTasks(); // Recargar el Kanban
+                    this.cerrarModalNota();
+                    this.loadTasksNota(this.taskId, document.getElementById('taskNote').value); // Recargar el Kanban
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -201,8 +262,9 @@ class GestionProyecto {
     }
 
     loadTasks() {
-        // Aquí iría la lógica para cargar las tareas del proyecto y renderizarlas en el Kanban
-        console.log("Cargando tareas para el proyecto:", this.p.id);
+        this.p.tareas.forEach(tarea => {
+            this.renderizarTarea(tarea);
+        });
     }
 
     loadInfo() {
@@ -240,46 +302,86 @@ class GestionProyecto {
     }
 
     renderizarTarea(t) {
-        // 1. Mapeo de columnas según el status que viene de la base de datos
         const columnas = {
             'todo': document.getElementById('todoList'),
             'progress': document.getElementById('progressList'),
             'approve': document.getElementById('approveList'),
             'done': document.getElementById('doneList')
         };
+        const contadorIds = {
+            'todo': 'todoCount', 'progress': 'progressCount', 'approve': 'approveCount', 'done': 'doneCount'
+        };
 
-        // 2. Seleccionar el contenedor destino (por defecto 'todo' si no existe)
         const contenedor = columnas[t.status] || columnas['todo'];
 
-        // 3. Crear el elemento HTML
+        // Actualizar contador
+        const badge = document.getElementById(contadorIds[t.status] || 'todoCount');
+        badge.innerText = parseInt(badge.innerText || 0) + 1;
+
         const fechaHtml = t.fecha_limite ? `<div class="task-due-date"><i class="far fa-calendar"></i> ${this.formatearFechaCorta(t.fecha_limite)}</div>` : '';
 
+        // CAMBIO: Usamos una CLASE para las notas, no un ID único
         const taskHtml = `
-        <div id="task-${t.id}" class="task-card ${t.categoria} ${t.prioridad}" draggable="true" ondragstart="gp.drag(event, '${t.id}')">
-            <div class="task-card-header">
-                <div class="task-title">${t.titulo}</div>
-                <div class="task-actions">
-                    <button class="task-action-btn edit-task" onclick="gp.prepararEdicion('${t.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="task-action-btn complete-task" onclick="gp.cambiarEstadoRapido('${t.id}', 'done')">
-                        <i class="fas fa-check"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="task-description">${t.descripcion || ''}</div>
-            <div class="task-footer">
-                <div class="task-meta">
-                    <span class="task-category ${t.categoria}">${t.categoria}</span>
-                    <span class="task-priority ${t.prioridad}">${t.prioridad}</span>
-                </div>
-                ${fechaHtml}
+    <div id="task-${t.id}" class="task-card ${t.categoria} ${t.prioridad}" draggable="true" ondragstart="gp.drag(event, '${t.id}')">
+        <div class="task-card-header">
+            <div class="task-title">${t.titulo}</div>
+            <div class="task-actions">
+                <button title="Agregar nota" class="task-action-btn" onclick="gp.abrirModalAgregarnotas('${t.id}','${t.titulo}')">
+                    <i class="fas fa-note-sticky"></i>
+                </button>
+                <button title="Completar" class="task-action-btn" onclick="gp.cambiarEstadoRapido('${t.id}', 'done')">
+                    <i class="fas fa-check"></i>
+                </button>
             </div>
         </div>
-    `;
+        <div class="task-description">${t.descripcion || ''}</div>
+        <div class="task-footer">
+            <div class="task-meta">
+                <span class="task-category ${t.categoria}">${t.categoria}</span>
+                <span class="task-priority ${t.prioridad}">${t.prioridad}</span>
+            </div>
+            ${fechaHtml}
+        </div>
+        <details class="VerNotas">
+            <summary>Notas (${t.historial_notas ? t.historial_notas.length : 0})</summary>
+            <ul class="list-note"></ul> </details>
+    </div>`;
 
-        // 4. Inyectar en el DOM
         contenedor.insertAdjacentHTML('beforeend', taskHtml);
+
+        // Renderizar notas si existen
+        if (t.historial_notas && Array.isArray(t.historial_notas)) {
+            t.historial_notas.forEach(nota => {
+                this.loadTasksNota(t.id, nota.comentario);
+            });
+        }
+    }
+
+    loadTasksNota(id_task, textoNota) {
+        // Buscamos el contenedor de la tarea específica por su ID
+        const taskElement = document.getElementById(`task-${id_task}`);
+        if (!taskElement) return;
+
+        // Buscamos la lista de notas dentro de ESA tarea usando su clase
+        const listNote = taskElement.querySelector('.list-note');
+
+        if (listNote) {
+            const li = document.createElement('li');
+            li.textContent = textoNota;
+            listNote.appendChild(li);
+        }
+    }
+
+    abrirModalAgregarnotas(taskId, taskTitulo) {
+        this.taskId = taskId;
+        document.getElementById('modal-overlay-task-notas').classList.remove('hidden');
+
+
+
+    }
+    cerrarModalNota() {
+        document.getElementById('modal-overlay-task-notas').classList.add('hidden');
+        document.getElementById('taskFormNote').reset();
     }
 }
 

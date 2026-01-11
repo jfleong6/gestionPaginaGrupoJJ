@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from firebase_admin import firestore
-import datetime
+from datetime import datetime
 aliado_bp = Blueprint('aliado', __name__)
 db = firestore.client()
 
@@ -124,7 +124,7 @@ def crear_proyecto(cliente_id):
             "recursos": data.get('recursos'), 
             "observaciones": data.get('observaciones'),
             "fecha_creacion": firestore.SERVER_TIMESTAMP, # Para ordenamiento exacto
-            "fecha_display": datetime.datetime.now(), # Para mostrar al usuario
+            "fecha_display": datetime.now(), # Para mostrar al usuario
             "estado": "activo",
             "aliado_propietario": uid_aliado,
             "deuda": False
@@ -228,12 +228,34 @@ def obtener_proyecto(id_proyecto):
         # 3. (Opcional) Si necesitas los datos extra que están en la subcolección del cliente
         # Aquí sí usamos la ruta jerárquica
         cliente_id = proyecto_data.get('cliente_id')
-        detalles_ref = db.collection('users').document(uid_aliado)\
-                         .collection('clientes').document(cliente_id)\
-                         .collection('proyectos').document(id_proyecto).get()
-        
-        # Combinamos ambos diccionarios
-        data_completa = {**proyecto_data, **detalles_ref.to_dict()}
+        # 1. Obtenemos el documento principal del proyecto
+        proyecto_doc = db.collection('users').document(uid_aliado)\
+                        .collection('clientes').document(cliente_id)\
+                        .collection('proyectos').document(id_proyecto).get()
+
+        if proyecto_doc.exists:
+            # 2. Obtenemos todos los documentos de la subcolección 'tareas'
+            tareas_query = db.collection('users').document(uid_aliado)\
+                            .collection('clientes').document(cliente_id)\
+                            .collection('proyectos').document(id_proyecto)\
+                            .collection('tareas').stream()
+            
+            # Convertimos las tareas a una lista de diccionarios
+            lista_tareas = []
+            for tarea in tareas_query:
+                t_data = tarea.to_dict()
+                t_data['id'] = tarea.id  # Opcional: guardar el ID de la tarea
+                lista_tareas.append(t_data)
+
+            # 3. Combinamos todo en un solo objeto
+            # Usamos proyecto_data (lo que ya tenías), el dict del documento y la nueva lista
+            data_completa = {
+                **proyecto_data, 
+                **proyecto_doc.to_dict(),
+                "tareas": lista_tareas  # Aquí inyectamos la subcolección
+            }
+    
+
         # print(data_completa)
 
         return jsonify({"status": "success", "proyecto": data_completa}), 200
@@ -242,9 +264,9 @@ def obtener_proyecto(id_proyecto):
         print(f"Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
 @aliado_bp.route('/agregar_tarea', methods=['POST'])
 def agregar_tarea():
+
     # 1. Seguridad: Verificar sesión del aliado
     if 'user' not in session:
         return jsonify({"status": "error", "message": "No autorizado"}), 401
@@ -281,3 +303,49 @@ def agregar_tarea():
     except Exception as e:
         print(f"Error al agregar tarea: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+
+@aliado_bp.route('/agregar_nota', methods=['POST'])
+def agregar_nota():
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    
+    uid_aliado = session.get('user')
+    try:
+        data = request.get_json()
+        id_cliente = data.get('id_cliente')
+        id_proyecto = data.get('id_proyecto')
+        id_tarea = data.get('id_tarea') # El ID del documento que ya existe
+        texto_nota = data.get('nota')
+        print(id_tarea)
+
+        # 1. REFERENCIA: Debe terminar en el documento de la TAREA
+        # No agregues .collection() después de esto
+        tarea_ref = db.collection('users').document(uid_aliado)\
+                    .collection('clientes').document(id_cliente)\
+                    .collection('proyectos').document(id_proyecto)\
+                    .collection('tareas').document(id_tarea)
+
+        # 2. La nota que queremos meter en el array
+        nueva_nota = {
+            "comentario": texto_nota,
+            "fecha": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "autor": uid_aliado
+        }
+
+        print(f"Ruta de destino: {tarea_ref.path}")
+
+        # 3. EL CAMBIO REAL: Usar .set() con ArrayUnion
+        # Esto NO crea un documento nuevo, sino que edita el existente 
+        # agregando la nota al campo 'historial_notas'
+        tarea_ref.set({
+            "historial_notas": firestore.ArrayUnion([nueva_nota]),
+            "ultima_actualizacion": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        }, merge=True) # merge=True es vital para no borrar otros campos de la tarea
+            
+        return jsonify({"status": "success", "message": "Nota integrada en la tarea"}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
