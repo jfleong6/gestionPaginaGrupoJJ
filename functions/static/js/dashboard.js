@@ -50,6 +50,6 @@ async function iniciarGestion(id_proyecto, id_cliente) {
         const data = await res.json();
         console.log(data);
         // 2. Iniciamos la clase POO (gp es global para acceder desde los onclick)
-        window.gp = new GestionProyecto('content-area', data.proyecto);
-        window.gp.render();
+        window.gp = await new GestionProyecto('content-area', data.proyecto);
+        window.gp.init();
     }

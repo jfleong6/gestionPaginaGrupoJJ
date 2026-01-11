@@ -234,10 +234,50 @@ def obtener_proyecto(id_proyecto):
         
         # Combinamos ambos diccionarios
         data_completa = {**proyecto_data, **detalles_ref.to_dict()}
-        print(data_completa)
+        # print(data_completa)
 
         return jsonify({"status": "success", "proyecto": data_completa}), 200
 
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@aliado_bp.route('/agregar_tarea', methods=['POST'])
+def agregar_tarea():
+    # 1. Seguridad: Verificar sesión del aliado
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    uid_aliado = session.get('user')
+    try:
+        data = request.get_json()
+        id_proyecto = data.get('id_proyecto') # El ID del documento en la colección global 'proyectos'
+        
+        if not id_proyecto:
+            return jsonify({"status": "error", "message": "Falta el ID del proyecto"}), 400
+        
+
+        # 2. Estructurar la tarea
+        nueva_tarea = {
+            "titulo": data.get('titulo'),
+            "descripcion": data.get('descripcion'),
+            "categoria": data.get('categoria'),
+            "prioridad": data.get('prioridad', 'medium'),
+            "status": "todo",  # Siempre inicia en "Por hacer"
+            "fecha_creacion": firestore.SERVER_TIMESTAMP,
+            "creado_por": session.get('user')
+        }
+
+        # 3. Guardar en la sub-colección: proyectos -> {id_proyecto} -> tareas -> {auto_id}
+        # Nota: Usamos la colección global 'proyectos' como punto de ancla
+        doc_ref = db.collection('users').document(uid_aliado).collection('clientes').document(data.get('id_cliente')).collection('proyectos').document(id_proyecto).collection('tareas').add(nueva_tarea)
+
+        return jsonify({
+            "status": "success", 
+            "message": "Tarea agregada",
+            "id_tarea": doc_ref[1].id # doc_ref[1] es la referencia del documento en .add()
+        }), 200
+
+    except Exception as e:
+        print(f"Error al agregar tarea: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500

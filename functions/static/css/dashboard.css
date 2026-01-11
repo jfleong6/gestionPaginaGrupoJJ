@@ -108,6 +108,7 @@ body {
 
 /* MAIN CONTENT */
 .main-content {
+    margin: 1vw;
     flex: 1;
     overflow-y: auto;
     display: flex;
