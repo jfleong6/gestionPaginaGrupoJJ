@@ -10,8 +10,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/clientes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/proyectos.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/gestion/task.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/gestion/informacion.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/gestion/pagos.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="logo.ico" type="image/x-icon">
+
 </head>
 
 <body>
@@ -59,11 +63,21 @@
                 <h1 id="section-title">Inicio</h1>
             </header>
 
-            <div id="content-area" class="content">
+            <div id="content-inicio" class="content hidden">
+                <div class="loader">Cargando panel...</div>
+            </div>
+            <div id="content-clientes" class="content hidden">
+                <div class="loader">Cargando panel...</div>
+            </div>
+            <div id="content-proyectos" class="content hidden">
                 <div class="loader">Cargando panel...</div>
             </div>
         </main>
     </div>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionPagos.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionInformacion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionNotas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionTareas.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionProyecto.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboardAlidado/inicio.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboardAlidado/clientes.js') }}"></script>

@@ -1,6 +1,41 @@
 from flask import Blueprint, request, jsonify, session
-from firebase_admin import firestore
+from firebase_admin import firestore, storage
 from datetime import datetime
+import uuid
+from PIL import Image
+import io
+
+# --- FUNCIÓN AUXILIAR DE OPTIMIZACIÓN ---
+def optimizar_imagen(archivo_entrada, ancho_max=1200, calidad=70):
+    """
+    Recibe un objeto de archivo, lo redimensiona y lo convierte a WEBP.
+    Retorna un buffer de memoria listo para subir a Storage.
+    """
+    try:
+        img = Image.open(archivo_entrada)
+        
+        # 1. Convertir a RGB (necesario para formatos con transparencia como PNG)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        # 2. Redimensionar proporcionalmente si supera el ancho máximo
+        if img.width > ancho_max:
+            proporcion = ancho_max / float(img.width)
+            alto = int(float(img.height) * proporcion)
+            img = img.resize((ancho_max, alto), Image.Resampling.LANCZOS)
+            
+        # 3. Guardar en un buffer de memoria en formato WEBP
+        buffer = io.BytesIO()
+        img.save(buffer, format="WEBP", quality=calidad, method=6)
+        buffer.seek(0)
+        
+        return buffer
+    except Exception as e:
+        print(f"Error optimizando imagen: {e}")
+        return None
+
+
+
 aliado_bp = Blueprint('aliado', __name__)
 db = firestore.client()
 
@@ -115,6 +150,18 @@ def crear_proyecto(cliente_id):
         data = request.get_json()
 
 
+        # Definir montos según categoría
+        categoria = data.get('categoria', '').lower()
+        if categoria in ['restaurante', 'portafolio', 'portafolios']:
+            cobro_inicial = 100000
+            mensualidad = 20000
+        elif categoria in ['almacen', 'tienda']:
+            cobro_inicial = 400000
+            mensualidad = 40000
+        else:
+            cobro_inicial = 0 # Valor por defecto para otras categorías
+            mensualidad = 0
+
         nuevo_proyecto = {
             "nombre_negocio": data.get('nombre_negocio'),
             "categoria": data.get('categoria'),
@@ -123,11 +170,17 @@ def crear_proyecto(cliente_id):
             "branding": data.get('branding'), 
             "recursos": data.get('recursos'), 
             "observaciones": data.get('observaciones'),
-            "fecha_creacion": firestore.SERVER_TIMESTAMP, # Para ordenamiento exacto
-            "fecha_display": datetime.now(), # Para mostrar al usuario
+            "fecha_creacion": firestore.SERVER_TIMESTAMP,
+            "fecha_display": datetime.now(),
             "estado": "activo",
             "aliado_propietario": uid_aliado,
-            "deuda": False
+            "deuda": True, # Cambiamos a True porque nace con el cobro inicial pendiente
+            "finanzas": {
+                "cobro_inicial": cobro_inicial,
+                "mensualidad_base": mensualidad,
+                "saldo_a_favor": 0,
+                "historial_pagos": [] # Array vacío listo para recibir registros
+            }
         }
 
         # 3. Guardar en ruta jerárquica
@@ -151,8 +204,7 @@ def crear_proyecto(cliente_id):
             "nombre_negocio": data.get('nombre_negocio'),
             "cliente_id": cliente_id,
             "aliado_id": uid_aliado,
-            "deuda": False,
-            "fecha_registro": firestore.SERVER_TIMESTAMP
+            "deuda": False
         })
 
         return jsonify({
@@ -349,3 +401,177 @@ def agregar_nota():
         print(f"Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@aliado_bp.route('/actualizar_status_tarea', methods=['POST'])
+def actualizar_status_tarea():
+    # 1. Verificación de sesión (igual que en agregar_nota)
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    
+    uid_aliado = session.get('user')
+    
+    try:
+        data = request.get_json()
+        id_cliente = data.get('id_cliente')
+        id_proyecto = data.get('id_proyecto')
+        id_tarea = data.get('id_tarea')
+        nuevo_status = data.get('nuevo_status')
+
+        # Imprimir para depuración en consola
+        print(f"Moviendo tarea {id_tarea} a estado: {nuevo_status}")
+
+        # 2. REFERENCIA: Siguiendo tu estructura exacta de colecciones
+        tarea_ref = db.collection('users').document(uid_aliado)\
+                      .collection('clientes').document(id_cliente)\
+                      .collection('proyectos').document(id_proyecto)\
+                      .collection('tareas').document(id_tarea)
+
+        # 3. ACTUALIZACIÓN: Usamos update o set con merge=True
+        # Actualizamos el status y la fecha de última modificación
+        tarea_ref.set({
+            "status": nuevo_status,
+            "ultima_actualizacion": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        }, merge=True)
+
+        return jsonify({
+            "status": "success", 
+            "message": f"Tarea actualizada a {nuevo_status}",
+            "nuevo_status": nuevo_status
+        }), 200
+
+    except Exception as e:
+        print(f"Error en actualizar_status_tarea: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500   
+
+@aliado_bp.route('/actualizar_info_proyecto', methods=['POST'])
+def actualizar_info_proyecto():
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    
+    try:
+        uid_aliado = session.get('user')
+        data = request.get_json()
+
+        # Extraer IDs necesarios para las rutas de Firestore
+        id_proyecto = data.get('id_proyecto')
+        id_cliente = data.get('id_cliente')
+
+        if not id_proyecto or not id_cliente:
+            return jsonify({"status": "error", "message": "IDs de proyecto o cliente ausentes"}), 400
+
+        # Construir el diccionario con los campos que permitimos editar
+        # Siguiendo exactamente la estructura de tu JSON
+        campos_actualizados = {
+            "nombre_negocio": data.get('nombre_negocio'),
+            "eslogan": data.get('eslogan'),
+            "categoria": data.get('categoria'),
+            "branding": {
+                "fuente": data.get('branding', {}).get('fuente'),
+                "colores": data.get('branding', {}).get('colores', [])
+            },
+            "contacto": {
+                "whatsapp": data.get('contacto', {}).get('whatsapp'),
+                "email": data.get('contacto', {}).get('email'),
+                "instagram": data.get('contacto', {}).get('instagram'),
+                "facebook": data.get('contacto', {}).get('facebook'),
+                "linkedin": data.get('contacto', {}).get('linkedin'),
+                "tiktok": data.get('contacto', {}).get('tiktok')
+            },
+            "ultima_edicion": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        }
+
+        # 1. ACTUALIZAR EN LA RUTA JERÁRQUICA (users -> clientes -> proyectos)
+        # Usamos .set con merge=True para asegurar que no borramos campos como 'tareas'
+        proyecto_jerarquico_ref = db.collection('users').document(uid_aliado)\
+                                    .collection('clientes').document(id_cliente)\
+                                    .collection('proyectos').document(id_proyecto)
+        
+        proyecto_jerarquico_ref.set(campos_actualizados, merge=True)
+
+        # 2. ACTUALIZAR EN LA COLECCIÓN GLOBAL (proyectos)
+        # Esto es vital para que 'obtener_proyecto' siga funcionando bien
+        proyecto_global_ref = db.collection('proyectos').document(id_proyecto)
+        
+        # Opcional: Verificar que el aliado es el dueño antes de editar la global
+        doc_global = proyecto_global_ref.get()
+        if doc_global.exists and doc_global.to_dict().get('aliado_id') == uid_aliado:
+            proyecto_global_ref.set(campos_actualizados, merge=True)
+
+        return jsonify({
+            "status": "success", 
+            "message": "Información del proyecto actualizada correctamente"
+        }), 200
+
+    except Exception as e:
+        print(f"Error al actualizar proyecto: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@aliado_bp.route('/registrar_pago', methods=['POST'])
+def registrar_pago():
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado"}), 401
+    
+    uid_aliado = session.get('user')
+    
+    try:
+        # 1. Recoger datos del formulario
+        id_cliente = request.form.get('id_cliente')
+        id_proyecto = request.form.get('id_proyecto')
+        monto = int(request.form.get('monto'))
+        concepto = request.form.get('concepto')
+        archivo = request.files.get('soporte')
+
+        if not archivo:
+            return jsonify({"status": "error", "message": "Falta el comprobante"}), 400
+
+        # 2. OPTIMIZAR LA IMAGEN antes de subirla
+        buffer_optimizado = optimizar_imagen(archivo)
+        
+        if not buffer_optimizado:
+            return jsonify({"status": "error", "message": "Error al procesar la imagen"}), 500
+
+        # 3. Subir a Firebase Storage
+        bucket = storage.bucket()
+        # Generamos un nombre único con extensión .webp
+        nombre_archivo = f"pagos/{uid_aliado}/{id_proyecto}/{uuid.uuid4().hex}.webp"
+        blob = bucket.blob(nombre_archivo)
+        
+        blob.upload_from_file(buffer_optimizado, content_type="image/webp")
+        blob.make_public()
+        url_soporte = blob.public_url
+
+        # 4. Preparar el objeto de pago para Firestore
+        nuevo_pago = {
+            "id": str(uuid.uuid4())[:8],
+            "fecha": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "monto": monto,
+            "concepto": concepto,
+            "soporte_url": url_soporte,
+            "autor": uid_aliado
+        }
+
+        # 5. Actualización en Batch para asegurar que se guarde en ambos lugares
+        # A. Ruta jerárquica
+        ref_jerarquica = db.collection('users').document(uid_aliado)\
+                           .collection('clientes').document(id_cliente)\
+                           .collection('proyectos').document(id_proyecto)
+        
+        # B. Ruta global
+        ref_global = db.collection('proyectos').document(id_proyecto)
+
+        datos_actualizacion = {
+            "finanzas.historial_pagos": firestore.ArrayUnion([nuevo_pago]),
+            "deuda": False # Se pone en false al recibir el reporte (puedes cambiar esto a validación manual)
+        }
+
+        ref_jerarquica.update(datos_actualizacion)
+        ref_global.update(datos_actualizacion)
+
+        return jsonify({
+            "status": "success", 
+            "nuevo_pago": nuevo_pago,
+            "estado_deuda": False
+        }), 200
+
+    except Exception as e:
+        print(f"Error crítico en registrar_pago: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500   

@@ -1,0 +1,170 @@
+/* Contenedor de Información */
+.info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.info-card-header {
+    font-weight: bold;
+    /* margin-bottom: 15px; */
+    color: #1e293b;
+    border-bottom: 1px solid #eee;
+    /* padding-bottom: 10px; */
+}
+
+/* Grilla de datos */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+
+.info-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-top: 1vh;
+}
+
+/* Paleta de colores */
+.color-palette {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.color-swatch {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid #ddd;
+    transition: transform 0.2s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-code {
+    display: none; /* Se puede mostrar al hacer hover */
+}
+
+/* Botones de contacto */
+.contact-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.contact-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.whatsapp { background-color: #25d366; }
+.email { background-color: #3b82f6; }
+.map { background-color: #ef4444; }
+
+
+/* Contenedor y Botones de Acción */
+.info-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.edit-main-btn, .save-main-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.edit-main-btn { background: #e2e8f0; color: #475569; }
+.save-main-btn { background: #22c55e; color: white; }
+.save-main-btn:hover { background: #16a34a; }
+
+/* Inputs de edición */
+.info-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    background: #f8fafc;
+}
+
+.info-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Paleta de Colores en Edición */
+.color-swatch-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.color-swatch {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.color-swatch input[type="color"] {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+.color-swatch span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.badge-status.activo { color: #16a34a; font-weight: bold; text-transform: uppercase; }

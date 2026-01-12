@@ -28,21 +28,43 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function cargarSeccion(name) {
-    const container = document.getElementById('content-area');
+    // 1. Referencias a los contenedores
+    const secciones = {
+        'inicio': document.getElementById('content-inicio'),
+        'clientes': document.getElementById('content-clientes'),
+        'proyectos': document.getElementById('content-proyectos')
+    };
+
+    // 2. Ocultar todas las secciones usando classList
+    Object.values(secciones).forEach(section => {
+        if (section) section.classList.add("hidden");
+    });
+
+    // 3. Mostrar la sección seleccionada
+    const targetId = `content-${name}`; // Construimos el ID dinámicamente
+    const currentContainer = document.getElementById(targetId);
     
-    // Switch para llamar funciones de otros archivos
+    if (currentContainer) {
+        currentContainer.classList.remove("hidden");
+    } else {
+        console.error("No se encontró el contenedor:", targetId);
+        return;
+    }
+
+    // 4. Switch para ejecutar los renders
     switch(name) {
         case 'inicio':
-            if(typeof renderInicio === 'function') renderInicio(container);
+            if(typeof renderInicio === 'function') renderInicio(currentContainer);
             break;
         case 'clientes':
-            if(typeof renderClientes === 'function') renderClientes(container);
+            if(typeof renderClientes === 'function') renderClientes(currentContainer);
             break;
         case 'proyectos':
-            if(typeof renderProyectos === 'function') renderProyectos(container);
+            if(typeof renderProyectos === 'function') renderProyectos(currentContainer);
             break;
     }
 }
+
 async function iniciarGestion(id_proyecto, id_cliente) {
         // 1. Buscamos los datos completos del proyecto
         const res = await fetch(`/aliado/obtener_proyecto/${id_proyecto}`);
@@ -50,6 +72,6 @@ async function iniciarGestion(id_proyecto, id_cliente) {
         const data = await res.json();
         console.log(data);
         // 2. Iniciamos la clase POO (gp es global para acceder desde los onclick)
-        window.gp = await new GestionProyecto('content-area', data.proyecto);
+        window.gp = await new GestionProyecto('content-proyectos', data.proyecto);
         window.gp.init();
     }

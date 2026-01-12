@@ -15,6 +15,7 @@
     --category-fyler: #7209b7;
     --category-galería: #3a86ff;
     --category-portada: #06d6a0;
+    --category-contacto: #ac06d6;
     --category-contenido_textos: #ff006e;
     --category-funcionalidad: #ff9e00;
     --category-redes_sociales: #00ff00;
@@ -220,15 +221,15 @@ button {
     box-shadow: var(--shadow-card);
     border-left: 4px solid var(--primary-color);
     transition: var(--transition);
-    cursor: grab;
+    /* cursor: grab; */
     user-select: none;
 }
 
-.task-card.dragging {
+/* .task-card.dragging {
     opacity: 0.5;
     transform: rotate(3deg);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
+} */
 
 .task-card:hover {
     transform: translateY(-3px);
@@ -245,6 +246,9 @@ button {
 
 .task-card.portada {
     border-left-color: var(--category-portada);
+}
+.task-card.contacto {
+    border-left-color: var(--category-contacto);
 }
 
 .task-card.contenido_textos {
@@ -342,6 +346,10 @@ button {
 .task-category.galería {
     background-color: rgba(58, 134, 255, 0.1);
     color: var(--category-galería);
+}
+.task-category.contacto {
+    background-color: rgba(58, 134, 255, 0.1);
+    color: var(--category-contacto);
 }
 
 .task-category.portada {
@@ -647,8 +655,32 @@ button {
     color: var(--info-color);
 }
 
-@media (max-width: 992px) {
-    .board-container {
-        /* flex-direction: column; */
-    }
+.task-footer {
+    display: flex;
+    flex-wrap: wrap; /* CLAVE: Permite bajar a la siguiente línea */
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Espacio entre etiquetas y fecha */
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap; /* Si hay muchas etiquetas, también saltan */
+    gap: 6px;
+    flex: 1 1 120px; /* Permite crecer y define un ancho mínimo */
+}
+
+.task-date {
+    font-size: 0.75rem;
+    color: #888;
+    white-space: nowrap; /* Evita que el icono se separe del texto */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 4px;
 }

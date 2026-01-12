@@ -111,8 +111,8 @@ class ModuloClientes {
             <td>${cli.nombre}</td>
             <td>${cli.proyectos_conteo || 0} proyectos</td> 
             <td>
-                <span class="status-badge ${cli.deuda ?  'status-ok': 'status-debt'}">
-                    ${cli.deuda ? 'Al día': 'Pendiente' }
+                <span class="status-badge ${cli.deuda ? 'status-ok' : 'status-debt'}">
+                    ${cli.deuda ? 'Al día' : 'Pendiente'}
                 </span>
             </td>
             <td>
@@ -171,6 +171,8 @@ class ModuloClientes {
 
 // Función global para main.js
 function renderClientes(container) {
-    const mod = new ModuloClientes(container);
-    mod.init();
+    if (!window.moduloCliente) {
+        window.moduloCliente = new ModuloClientes(container);
+        moduloCliente.init();
+    }
 }

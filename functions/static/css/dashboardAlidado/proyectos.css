@@ -121,7 +121,7 @@
 .input-group input,
 .input-group select {
     width: 90%;
-    margin: 2vw;
+    /* margin: 2vw; */
     padding: 10px;
     border: 1px solid #e2e8f0;
     border-bottom: 1px solid #3e4144;

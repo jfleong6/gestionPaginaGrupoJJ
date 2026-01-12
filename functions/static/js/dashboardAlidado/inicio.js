@@ -1,7 +1,7 @@
 class DashboardInicio {
     constructor(container) {
         // Aseguramos que container sea el elemento DOM
-        this.container = container; 
+        this.container = container;
         this.stats = {
             clientes: 0,
             proyectosActivos: 0,
@@ -69,6 +69,8 @@ class DashboardInicio {
 }
 
 function renderInicio(container) {
-    const inicio = new DashboardInicio(container);
-    inicio.init();
+    if (!window.moduloInicio) {
+        window.moduloInicio = new DashboardInicio(container);
+        moduloInicio.init();
+    }
 }

@@ -1,0 +1,180 @@
+/* Contenedor Principal */
+.pagos-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Grilla de Tarjetas */
+.pagos-resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Estilo Base de Tarjetas */
+.resumen-card {
+    padding: 24px;
+    border-radius: 20px; /* Bordes más redondeados */
+    color: white;
+    position: relative;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resumen-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradientes Minimalistas */
+.resumen-card.base { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.resumen-card.mensualidad { background: linear-gradient(135deg, #6366f1, #4338ca); }
+.resumen-card.saldo-pendiente { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.resumen-card.saldo-favor { background: linear-gradient(135deg, #10b981, #047857); }
+
+.resumen-card label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+}
+
+.resumen-card .monto {
+    font-size: 1.85rem;
+    font-weight: 800;
+    margin: 6px 0;
+}
+
+.resumen-card small {
+    font-size: 0.75rem;
+    opacity: 0.75;
+    font-weight: 400;
+}
+
+/* Sección de Tabla de Historial */
+.historial-container {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+}
+
+.seccion-titulo {
+    font-size: 1.1rem;
+    color: #1e293b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.tabla-responsive {
+    overflow-x: auto;
+}
+
+.tabla-pagos {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tabla-pagos th {
+    background: #f8fafc;
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.025em;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-pagos td {
+    padding: 16px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.tabla-pagos tr:last-child td {
+    border-bottom: none;
+}
+
+.monto-tabla {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.btn-ver-soporte {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-ver-soporte:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* Botón de Acción Principal */
+.acciones-pago-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-radius: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+.info-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.btn-reportar-pago {
+    background: #0f172a; /* Negro minimalista */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-reportar-pago:hover {
+    transform: scale(1.02);
+    background: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pagos-resumen-grid {
+        grid-template-columns: 1fr;
+    }
+    .acciones-pago-container {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}

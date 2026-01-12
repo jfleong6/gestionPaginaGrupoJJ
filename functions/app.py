@@ -22,21 +22,30 @@ app.config.update(
 )
 
 # --- Inicialización de Firebase ---
+# Obtenemos la ruta absoluta de la carpeta donde está este script
 base_dir = os.path.dirname(os.path.abspath(__file__))
+# Unimos la carpeta con el nombre exacto de tu archivo JSON
 cert_path = os.path.join(base_dir, "service-account-key.json")
 
 if not firebase_admin._apps:
     try:
         if os.path.exists(cert_path):
+            # USAMOS cert_path en lugar del texto de ejemplo
             cred = credentials.Certificate(cert_path)
-            firebase_admin.initialize_app(cred)
-            print(f"Firebase cargado con éxito localmente")
+            firebase_admin.initialize_app(cred, {
+                'storageBucket': 'gestioncontrol-grupojj.firebasestorage.app'
+            })
+            print(f"✅ Firebase cargado con éxito localmente desde: {cert_path}")
         else:
-            firebase_admin.initialize_app()
+            # Si no existe el archivo (por ejemplo, en producción/nube)
+            firebase_admin.initialize_app(options={
+                'storageBucket': 'gestioncontrol-grupojj.firebasestorage.app'
+            })
             print("Firebase inicializado con credenciales de entorno")
     except Exception as e:
         print(f"Error inicializando Firebase: {e}")
 
+# Ahora el cliente de firestore funcionará porque la app ya está inicializada
 db = firestore.client()
 
 

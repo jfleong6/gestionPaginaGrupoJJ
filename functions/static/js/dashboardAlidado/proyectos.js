@@ -74,20 +74,51 @@ class ModuloProyectos {
                             <h4 class="section-title">2. Canales de Contacto</h4>
                             <div class="form-grid-2">
                                 <div class="input-group">
-                                    <label>WhatsApp</label>
-                                    <input type="text" id="p-wa" placeholder="Número con código de país">
+                                <label>
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    WhatsApp
+                                </label>
+                                <input type="text" id="p-wa" placeholder="Número con código de país">
                                 </div>
+
                                 <div class="input-group">
-                                    <label>Correo Oficial</label>
-                                    <input type="email" id="p-correo" placeholder="contacto@negocio.com">
+                                <label>
+                                    <i class="fa-solid fa-envelope"></i>
+                                    Correo oficial
+                                </label>
+                                <input type="email" id="p-correo" placeholder="contacto@negocio.com">
                                 </div>
+
                                 <div class="input-group">
-                                    <label>Instagram</label>
-                                    <input type="text" id="p-ig" placeholder="Link o @usuario">
+                                <label>
+                                    <i class="fa-brands fa-instagram"></i>
+                                    Instagram
+                                </label>
+                                <input type="text" id="p-ig" placeholder="Link o @usuario">
                                 </div>
+
                                 <div class="input-group">
-                                    <label>TikTok / Facebook</label>
-                                    <input type="text" id="p-social-extra" placeholder="Otras redes sociales">
+                                <label>
+                                    <i class="fa-brands fa-tiktok"></i>
+                                    TikTok
+                                </label>
+                                <input type="text" id="p-ti" placeholder="Link de TikTok">
+                                </div>
+
+                                <div class="input-group">
+                                <label>
+                                    <i class="fa-brands fa-facebook"></i>
+                                    Facebook
+                                </label>
+                                <input type="text" id="p-fa" placeholder="Link Facebook">
+                                </div>
+
+                                <div class="input-group">
+                                <label>
+                                    <i class="fa-brands fa-linkedin"></i>
+                                    LinkedIn
+                                </label>
+                                <input type="text" id="p-li" placeholder="Link LinkedIn">
                                 </div>
                             </div>
                         </div>
@@ -240,7 +271,11 @@ class ModuloProyectos {
                     whatsapp: document.getElementById('p-wa').value,
                     email: document.getElementById('p-correo').value,
                     instagram: document.getElementById('p-ig').value,
-                    social_extra: document.getElementById('p-social-extra').value
+                    tiktok: document.getElementById('p-ti').value,
+                    facebook: document.getElementById('p-fa').value,
+                    linkedin: document.getElementById('p-li').value
+
+
                 },
                 branding: {
                     colores: [
@@ -348,13 +383,15 @@ class ModuloProyectos {
         } catch (e) { grid.innerHTML = '<p>Error al cargar proyectos.</p>'; }
     }
 
-    
+
 }
 
 /**
  * Función puente con el dashboard principal
  */
 function renderProyectos(container) {
-    const modulo = new ModuloProyectos(container);
-    modulo.init();
+    if (!window.moduloProyecto) {
+        window.moduloProyecto = new ModuloProyectos(container);
+        moduloProyecto.init();
+    }
 }
