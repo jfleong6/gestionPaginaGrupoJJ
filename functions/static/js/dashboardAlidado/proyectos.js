@@ -377,8 +377,8 @@ class ModuloProyectos {
                         <button class="btn-icon" onclick="iniciarGestion('${p.proyecto_id}', '${p.cliente_id}')">
                             <i class="fa-solid fa-gear"></i>
                         </button>
-                        <span class="status-badge ${p.deuda? 'status-ok' : 'status-debt'}">
-                            ${p.deuda? 'Al dia' : 'Pendiente'}
+                        <span class="status-badge ${!p.deuda? 'status-ok' : 'status-debt'}">Pago
+                            ${!p.deuda? 'Al dia' : 'Pendiente'}
                         </span>
                     </div>
                 </div>
