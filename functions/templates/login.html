@@ -4,36 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Ingreso | Grupo JJ</title>
-    <link rel="icon" href="logo.ico" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='logo.ico') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 
 <body>
 
-    <div class="login-container">
-        <h2>Ingreso al sistema</h2>
+    <div class="login-background">
+        <div class="login-container">
+            <div class="logo-header">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Grupo JJ">
+            </div>
 
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
+            <h2>Bienvenido</h2>
+            <p class="subtitle">Ingresa tus credenciales para continuar</p>
 
-        <form id="loginForm">
-            <label>Correo electrónico</label>
-            <input type="email" name="email" id="email" required>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
 
-            <label>Contraseña</label>
-            <input type="password" name="password" id="password" required>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" name="email" id="email" placeholder="nombre@grupojj.com" required>
+                </div>
 
-            <button type="submit">Ingresar</button>
-        </form>
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" name="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit">Ingresar al Sistema</button>
+            </form>
+        </div>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-
 
 </body>
 

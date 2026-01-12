@@ -1,65 +1,118 @@
-body {
+/* Reset básico */
+* {
+    box-sizing: border-box;
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #0f172a;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Color de fondo oscuro extraído del fondo del logo */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #334155;
 }
 
 .login-container {
     background: #ffffff;
-    padding: 30px;
-    width: 320px;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px; /* Un poco más ancho para elegancia */
+    border-radius: 16px; /* Bordes redondeados como el logo */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    border-top: 5px solid #3b82f6; /* Detalle azul arriba */
+}
+
+/* Estilo para el contenedor del logo */
+.logo-header img {
+    width: 100px; /* Tamaño controlado */
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 h2 {
-    margin-bottom: 20px;
-    text-align: center;
+    margin-bottom: 5px;
     color: #1e293b;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
 }
 
 label {
-    font-size: 14px;
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
     color: #475569;
+    margin-bottom: 6px;
 }
 
 input {
     width: 100%;
-    padding: 10px;
-    margin: 8px 0 15px;
-    border-radius: 6px;
-    border: 1px solid #cbd5f5;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    font-size: 15px;
+    transition: all 0.3s ease;
     outline: none;
 }
 
 input:focus {
-    border-color: #2563eb;
+    border-color: #3b82f6; /* Azul del logo */
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 button {
     width: 100%;
-    padding: 10px;
-    background: #2563eb;
+    padding: 14px;
+    /* Gradiente sutil usando el azul del logo */
+    background: linear-gradient(to right, #2563eb, #3b82f6);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: white;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
 }
 
 button:hover {
-    background: #1d4ed8;
+    background: linear-gradient(to right, #1d4ed8, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 .error {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    margin-bottom: 20px;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
