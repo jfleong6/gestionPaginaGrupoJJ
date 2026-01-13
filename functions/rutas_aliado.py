@@ -45,7 +45,7 @@ def crear_cliente():
         return jsonify({"status": "error", "message": "No autorizado"}), 401
     
     try:
-        uid_aliado = session.get('user') # El ID del documento del aliado
+        uid_aliado = session.get('user') 
         data = request.get_json()
         
         # Datos del cliente
@@ -56,22 +56,18 @@ def crear_cliente():
             "celular": data.get('celular'),
             "whatsapp": data.get('whatsapp'),
             "fecha_registro": firestore.SERVER_TIMESTAMP,
-            "proyectos_activos": 0,
+            "proyectos_conteo": 0, # Iniciamos en 0 explícitamente
             "deuda": False,
             "estado": "activo"
         }
 
-        # REFERENCIA A SUBCOLECCIÓN: users/{uid}/clientes
-        # Esto crea el cliente dentro de la carpeta del aliado actual
+
         doc_ref = db.collection('users').document(uid_aliado).collection('clientes').add(nuevo_cliente)
-        
-        user_ref = db.collection('users').document(uid_aliado)
 
-        user_ref.update({
-            "stats_total_clientes": firestore.Increment(1)
-        })
+        db.collection('users').document(uid_aliado).set({
+            'stats_total_clientes': firestore.Increment(1)
+        }, merge=True)
 
-        
         return jsonify({
             "status": "success", 
             "message": "Cliente agregado a tu lista personal",
@@ -95,17 +91,7 @@ def obtener_clientes():
         for doc in clientes_ref:
             cliente_data = doc.to_dict()
             cliente_data['id'] = doc.id
-            
-            # --- EL CAMBIO CLAVE ---
-            # Consultamos la subcolección de proyectos de ESTE cliente específico
-            proyectos_ref = db.collection('users').document(uid_aliado)\
-                              .collection('clientes').document(doc.id)\
-                              .collection('proyectos').get()
-            
-            # Agregamos el conteo al objeto que va para el JS
-            cliente_data['proyectos_conteo'] = len(proyectos_ref)
-            # -----------------------
-
+            cliente_data['proyectos_conteo'] = cliente_data.get('proyectos_conteo', 0)
             lista_clientes.append(cliente_data)
             
         return jsonify({"status": "success", "data": lista_clientes}), 200
@@ -156,6 +142,14 @@ def crear_proyecto(cliente_id):
         uid_aliado = session.get('user')
         data = request.get_json()
 
+        # 1. OPTIMIZACIÓN: Leer datos del cliente UNA sola vez
+        # Necesitamos el nombre para guardarlo en el proyecto y evitar consultas extra después
+        cliente_ref = db.collection('users').document(uid_aliado)\
+                        .collection('clientes').document(cliente_id).get()
+        
+        nombre_cliente = "Cliente Desconocido"
+        if cliente_ref.exists:
+            nombre_cliente = cliente_ref.to_dict().get('nombre', 'Sin Nombre')
 
         # Definir montos según categoría
         categoria = data.get('categoria', '').lower()
@@ -166,7 +160,7 @@ def crear_proyecto(cliente_id):
             cobro_inicial = 400000
             mensualidad = 40000
         else:
-            cobro_inicial = 0 # Valor por defecto para otras categorías
+            cobro_inicial = 0
             mensualidad = 0
 
         nuevo_proyecto = {
@@ -181,42 +175,45 @@ def crear_proyecto(cliente_id):
             "fecha_display": datetime.now(),
             "estado": "activo",
             "aliado_propietario": uid_aliado,
-            "deuda": True, # Cambiamos a True porque nace con el cobro inicial pendiente
+            # --- CAMPOS NUEVOS PARA OPTIMIZACIÓN ---
+            "cliente_id": cliente_id,
+            "cliente_nombre": nombre_cliente,
+            # ---------------------------------------
+            "deuda": True, 
             "finanzas": {
                 "cobro_inicial": cobro_inicial,
                 "mensualidad_base": mensualidad,
                 "saldo_a_favor": 0,
-                "historial_pagos": [] # Array vacío listo para recibir registros
+                "historial_pagos": []
             }
         }
 
-        # 3. Guardar en ruta jerárquica
-        # .add() devuelve (timestamp, doc_reference)
+        # 2. Guardar en ruta jerárquica (users -> clientes -> proyectos)
         update_time, doc_ref = db.collection('users').document(uid_aliado)\
                                  .collection('clientes').document(cliente_id)\
                                  .collection('proyectos').add(nuevo_proyecto)
 
-        nuevo_proyecto_id = doc_ref.id # <--- ID Correcto
+        nuevo_proyecto_id = doc_ref.id 
 
-        # 4. Actualizar contador en el cliente
+        # 3. Actualizar contador LOCAL en el cliente (+1 proyecto para este cliente)
         db.collection('users').document(uid_aliado)\
           .collection('clientes').document(cliente_id).update({
               "proyectos_conteo": firestore.Increment(1)
           })
-          
-        user_ref = db.collection('users').document(uid_aliado)
-
-        user_ref.update({
-            "stats_proyectos_activos": firestore.Increment(1)
-        })
         
-        # 5. CREAR COLECCIÓN RAÍZ 'proyectos'
-        # Añadimos el nombre del negocio también aquí para facilitar búsquedas globales
+        # 4. OPTIMIZACIÓN: Actualizar contador GLOBAL en el perfil del aliado
+        # Esto alimenta la gráfica de "Proyectos Activos" del dashboard
+        db.collection('users').document(uid_aliado).set({
+            'stats_proyectos_activos': firestore.Increment(1)
+        }, merge=True)
+        
+        # 5. Guardar en Colección Global 'proyectos' (Referencia Rápida)
         db.collection('proyectos').document(nuevo_proyecto_id).set({
             "proyecto_id": nuevo_proyecto_id,
             "nombre_negocio": data.get('nombre_negocio'),
             "cliente_id": cliente_id,
             "aliado_id": uid_aliado,
+            "cliente_nombre": nombre_cliente, # Guardamos el nombre aquí también
             "deuda": False
         })
 
@@ -237,21 +234,19 @@ def obtener_estadisticas():
     
     try:
         uid_aliado = session.get('user')
-        doc = db.collection('users').document(uid_aliado).get()
+        
+        # OPTIMIZACIÓN: Leemos solo 1 documento (el perfil del aliado)
+        user_doc = db.collection('users').document(uid_aliado).get()
+        
+        if not user_doc.exists:
+             return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
 
-        if not doc.exists:
-            return jsonify({
-                "status": "error",
-                "message": "Usuario no encontrado"
-            }), 404
+        user_data = user_doc.to_dict()
 
-        data = doc.to_dict()
-
-        data = doc.to_dict()
-        total_clientes = data.get('stats_total_clientes', 0)
-        activos = data.get('stats_proyectos_activos', 0)
-        inactivos = data.get('stats_proyectos_inactivos', 0)
-
+        # Usamos .get('clave', 0) para evitar errores si los campos son nuevos
+        total_clientes = user_data.get('stats_total_clientes', 0)
+        activos = user_data.get('stats_proyectos_activos', 0)
+        inactivos = user_data.get('stats_proyectos_inactivos', 0)
 
         return jsonify({
             "status": "success",
@@ -263,7 +258,7 @@ def obtener_estadisticas():
         }), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
+    
 @aliado_bp.route('/obtener_proyecto/<string:id_proyecto>', methods=['GET'])
 def obtener_proyecto(id_proyecto):
     # print(f"Solicitud para obtener proyecto ID: {id_proyecto}")
