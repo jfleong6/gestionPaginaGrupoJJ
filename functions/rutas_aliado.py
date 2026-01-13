@@ -65,6 +65,13 @@ def crear_cliente():
         # Esto crea el cliente dentro de la carpeta del aliado actual
         doc_ref = db.collection('users').document(uid_aliado).collection('clientes').add(nuevo_cliente)
         
+        user_ref = db.collection('users').document(uid_aliado)
+
+        user_ref.update({
+            "stats_total_clientes": firestore.Increment(1)
+        })
+
+        
         return jsonify({
             "status": "success", 
             "message": "Cliente agregado a tu lista personal",
@@ -196,6 +203,12 @@ def crear_proyecto(cliente_id):
           .collection('clientes').document(cliente_id).update({
               "proyectos_conteo": firestore.Increment(1)
           })
+          
+        user_ref = db.collection('users').document(uid_aliado)
+
+        user_ref.update({
+            "stats_proyectos_activos": firestore.Increment(1)
+        })
         
         # 5. CREAR COLECCIÓN RAÍZ 'proyectos'
         # Añadimos el nombre del negocio también aquí para facilitar búsquedas globales
@@ -224,26 +237,21 @@ def obtener_estadisticas():
     
     try:
         uid_aliado = session.get('user')
-        clientes_ref = db.collection('users').document(uid_aliado).collection('clientes').stream()
-        
-        total_clientes = 0
-        activos = 0
-        inactivos = 0
+        doc = db.collection('users').document(uid_aliado).get()
 
-        for cli_doc in clientes_ref:
-            total_clientes += 1
-            # Entramos a la subcolección de proyectos de cada cliente
-            proyectos = db.collection('users').document(uid_aliado)\
-                          .collection('clientes').document(cli_doc.id)\
-                          .collection('proyectos').stream()
-            
-            for p in proyectos:
-                p_data = p.to_dict()
-                # Lógica: Si el estado es 'activo' suma a activos, si no a inactivos
-                if p_data.get('estado') == 'activo':
-                    activos += 1
-                else:
-                    inactivos += 1
+        if not doc.exists:
+            return jsonify({
+                "status": "error",
+                "message": "Usuario no encontrado"
+            }), 404
+
+        data = doc.to_dict()
+
+        data = doc.to_dict()
+        total_clientes = data.get('stats_total_clientes', 0)
+        activos = data.get('stats_proyectos_activos', 0)
+        inactivos = data.get('stats_proyectos_inactivos', 0)
+
 
         return jsonify({
             "status": "success",

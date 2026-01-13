@@ -32,7 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
 
     // Carga inicial
+    renderInicio(document.getElementById('content-inicio'));
+    renderClientes(document.getElementById('content-clientes'));
+    renderProyectos(document.getElementById('content-proyectos'));
     cargarSeccion('inicio');
+
 });
 
 function cargarSeccion(name) {
@@ -51,19 +55,6 @@ function cargarSeccion(name) {
     } else {
         console.error("No se encontró el contenedor:", targetId);
         return;
-    }
-
-    // 4. Switch para ejecutar los renders
-    switch (name) {
-        case 'inicio':
-            if (typeof renderInicio === 'function') renderInicio(currentContainer);
-            break;
-        case 'clientes':
-            if (typeof renderClientes === 'function') renderClientes(currentContainer);
-            break;
-        case 'proyectos':
-            if (typeof renderProyectos === 'function') renderProyectos(currentContainer);
-            break;
     }
 }
 
