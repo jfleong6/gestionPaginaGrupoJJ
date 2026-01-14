@@ -358,11 +358,11 @@ class ModuloProyectos {
         const esDeuda = p.deuda === true || p.deuda === "true";
 
         return `
-            <div class="project-card fade-in"> <div class="project-header">
-                    <div class="icon-box">
+            <div class="proyecto-card fade-in"> <div class="card-header">
+                    <div class="project-logo">
                         <i class="fa-solid fa-store"></i>
                     </div>
-                    <div>
+                    <div class = 'negocio'>
                         <h3>${p.nombre_negocio || 'Sin Nombre'}</h3>
                         <p>${p.categoria}</p>
                     </div>
