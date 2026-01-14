@@ -261,8 +261,14 @@ class ModuloProyectos {
         // 6. Submit Final al Backend
         form.onsubmit = async (e) => {
             e.preventDefault();
-            const clienteId = document.getElementById('sel-cliente').value;
 
+            // 1. Obtener ID y Nombre del Cliente (Vital para la UI sin recargar)
+            const selectCliente = document.getElementById('sel-cliente');
+            const clienteId = selectCliente.value;
+            // Truco: Obtenemos el texto de la opción seleccionada para mostrarlo en la tarjeta
+            const nombreCliente = selectCliente.options[selectCliente.selectedIndex].text;
+
+            // 2. Construir el Payload para el Backend
             const payload = {
                 nombre_negocio: document.getElementById('p-nombre').value,
                 categoria: document.getElementById('sel-cat').value,
@@ -274,8 +280,6 @@ class ModuloProyectos {
                     tiktok: document.getElementById('p-ti').value,
                     facebook: document.getElementById('p-fa').value,
                     linkedin: document.getElementById('p-li').value
-
-
                 },
                 branding: {
                     colores: [
@@ -284,29 +288,122 @@ class ModuloProyectos {
                         document.getElementById('c3').value,
                         document.getElementById('c4').value
                     ],
-                    fuente: fuenteInput.value
+                    fuente: typeof fuenteInput !== 'undefined' ? fuenteInput.value : '' // Validación por seguridad
                 },
                 recursos: {
                     logo_url: document.getElementById('p-logo').value,
                     mapa_url: document.getElementById('p-mapa').value
                 },
-                oboservaciones: document.getElementById('p-observaciones').value
+                observaciones: document.getElementById('p-observaciones').value // Corregido el typo "oboservaciones"
             };
 
             try {
+                // 3. Enviar a Firebase
                 const res = await fetch(`/aliado/crear_proyecto/${clienteId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if ((await res.json()).status === 'success') {
-                    alert("✅ Proyecto guardado correctamente.");
-                    btnClose.onclick();
-                    this.cargarProyectos();
+                const data = await res.json();
+
+                if (data.status === 'success') {
+
+                    // --- INICIO OPTIMIZACIÓN UI (Sin recargar) ---
+
+                    // A. Construir objeto local combinando formulario + respuesta del server
+                    const nuevoProyectoUI = {
+                        ...payload,
+                        proyecto_id: data.proyecto_id, // ID que nos devuelve el backend
+                        cliente_id: clienteId,
+                        cliente_nombre: nombreCliente, // Usamos el nombre que capturamos del select
+                        estado: 'activo',              // Por defecto nace activo
+                        deuda: true                    // Por defecto nace con deuda (cobro inicial)
+                    };
+
+                    // B. Inyectar la tarjeta visualmente al inicio
+                    // (Asegúrate de haber agregado el método agregarProyectoUI a tu clase como vimos antes)
+                    this.agregarProyectoUI(nuevoProyectoUI);
+
+                    // C. Actualizar contador visual de Proyectos Activos
+                    const contadorActivos = document.getElementById('count-activos');
+                    if (contadorActivos) {
+                        let actual = parseInt(contadorActivos.innerText) || 0;
+                        contadorActivos.innerText = actual + 1;
+                    }
+
+                    // --- FIN OPTIMIZACIÓN UI ---
+
+                    alert("✅ Proyecto creado exitosamente.");
+
+                    // Limpieza
+                    if (btnClose && typeof btnClose.onclick === 'function') btnClose.onclick(); // Cerrar modal
+                    else this.toggleModal(false); // Fallback si usas tu propio método toggle
+
+                    form.reset(); // Limpiar campos
+
+                } else {
+                    alert("Error del servidor: " + data.message);
                 }
-            } catch (err) { console.error("Error guardando proyecto:", err); }
+
+            } catch (err) {
+                console.error("Error guardando proyecto:", err);
+                alert("Error de conexión al intentar guardar.");
+            }
         };
+    }
+
+    generarHTMLTarjeta(p) {
+        // Aseguramos que deuda sea booleano para el ternario
+        const esDeuda = p.deuda === true || p.deuda === "true";
+
+        return `
+            <div class="project-card fade-in"> <div class="project-header">
+                    <div class="icon-box">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h3>${p.nombre_negocio || 'Sin Nombre'}</h3>
+                        <p>${p.categoria}</p>
+                    </div>
+                </div>
+                <div class="project-details">
+                    <p><i class="fa-solid fa-user"></i> ${p.cliente_nombre || 'Cliente'}</p>
+                    <p><i class="fa-solid fa-calendar"></i> ${new Date().toLocaleDateString()}</p>
+                </div>
+                <div class="project-footer">
+                    <span class="status-badge status-ok">${p.estado || 'Activo'}</span>
+                    
+                    <button class="btn-icon" onclick="iniciarGestion('${p.proyecto_id}', '${p.cliente_id}')">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+
+                    <span class="status-badge ${!esDeuda ? 'status-ok' : 'status-debt'}">
+                        Pago ${!esDeuda ? 'Al día' : 'Pendiente'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+
+
+    /**
+     * Inyecta un nuevo proyecto al inicio de la grilla sin recargar
+     */
+    agregarProyectoUI(nuevoProyecto) {
+        const grid = document.getElementById('grid-proyectos');
+
+        // Si había un mensaje de "No hay proyectos" o loader, lo limpiamos
+        if (grid.querySelector('.loader') || grid.innerText.includes('No hay')) {
+            grid.innerHTML = '';
+        }
+
+        // Crear un div temporal para convertir el string HTML en Elemento DOM
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = this.generarHTMLTarjeta(nuevoProyecto);
+
+        // Insertamos el primer hijo (la tarjeta) al principio de la grilla
+        grid.prepend(tempDiv.firstElementChild);
     }
 
     /**
@@ -348,42 +445,22 @@ class ModuloProyectos {
      */
     async cargarProyectos() {
         const grid = document.getElementById('grid-proyectos');
+        grid.innerHTML = '<div class="loader">Cargando proyectos...</div>';
+
         try {
             const res = await fetch('/aliado/obtener_todos_los_proyectos');
-            const r = await res.json();
+            const resultado = await res.json();
 
-            if (r.data.length === 0) {
-                grid.innerHTML = '<p class="full-row">No hay proyectos registrados.</p>';
-                return;
+            if (resultado.status === 'success' && resultado.data.length > 0) {
+                // USAMOS LA NUEVA FUNCIÓN AQUÍ
+                grid.innerHTML = resultado.data.map(p => this.generarHTMLTarjeta(p)).join('');
+            } else {
+                grid.innerHTML = '<p>No hay proyectos activos.</p>';
             }
-
-            grid.innerHTML = r.data.map(p => `
-                <div class="proyecto-card" style="border-top: 5px solid ${p.branding?.colores[0] || '#3b82f6'}">
-                    <div class="card-header">
-                        <div class="project-logo" style="background:${p.branding?.colores[0] || '#3b82f6'}20; color:${p.branding?.colores[0] || '#3b82f6'}">
-                            <i class="fa-solid fa-store"></i>
-                        </div>
-                        <div>
-                            <h3>${p.nombre_negocio || 'Sin Nombre'}</h3>
-                            <p>${p.categoria}</p>
-                        </div>
-                    </div>
-                    <div class="project-details">
-                        <p><i class="fa-solid fa-user"></i> ${p.cliente_nombre}</p>
-                        <p><i class="fa-solid fa-envelope"></i> ${p.contacto?.email || 'N/A'}</p>
-                    </div>
-                    <div class="project-footer">
-                        <span class="status-badge status-ok">${p.estado || 'Activo'}</span>
-                        <button class="btn-icon" onclick="iniciarGestion('${p.proyecto_id}', '${p.cliente_id}')">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
-                        <span class="status-badge ${!p.deuda? 'status-ok' : 'status-debt'}">Pago
-                            ${!p.deuda? 'Al dia' : 'Pendiente'}
-                        </span>
-                    </div>
-                </div>
-            `).join('');
-        } catch (e) { grid.innerHTML = '<p>Error al cargar proyectos.</p>'; }
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p>Error al cargar proyectos.</p>';
+        }
     }
 
 

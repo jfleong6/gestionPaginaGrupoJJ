@@ -124,30 +124,79 @@ class ModuloClientes {
     `).join('');
     }
 
+    agregarFilaUI(cliente, id) {
+        // 1. Usamos la misma referencia 'this.tableBody' que usas en renderTable
+        if (!this.tableBody) return;
+
+        // 2. Crear el elemento TR
+        const tr = document.createElement('tr');
+
+        // Opcional: Agregar una clase para animación si tienes CSS para ello
+        // tr.classList.add('fade-in'); 
+
+        // 3. Inyectar el HTML EXACTO siguiendo tu estructura visual
+        // Nota: Como es nuevo, proyectos es 0 y estado es 'activo' por defecto
+        tr.innerHTML = `
+        <td><b>${cliente.documento}</b></td>
+        <td>${cliente.nombre}</td>
+        <td>0 proyectos</td> 
+        <td>
+            <span class="status-badge status-ok">
+                activo
+            </span>
+        </td>
+        <td>
+            <button class="btn-icon" onclick="verProyectos('${id}')">
+                <i class="fa-solid fa-eye"></i>
+            </button>
+        </td>
+    `;
+
+        // 4. Insertar la fila al PRINCIPIO de la tabla (prepend) para que se vea arriba
+        this.tableBody.prepend(tr);
+    }
+
     async guardarCliente() {
+        // 1. Recoger datos del formulario
         const datosCliente = {
             nombre: document.getElementById('m-nombre').value,
             documento: document.getElementById('m-doc').value,
             correo: document.getElementById('m-correo').value,
             celular: document.getElementById('m-cel').value,
-            whatsapp: document.getElementById('m-wa').value
+            whatsapp: document.getElementById('m-wa').value,
+            // Inicializamos valores por defecto para que la tabla no falle
+            proyectos_conteo: 0,
+            estado: 'activo'
         };
 
         try {
             const response = await fetch('/aliado/crear_cliente', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosCliente)
             });
 
             const resultado = await response.json();
 
             if (resultado.status === "success") {
-                alert("¡Cliente guardado en Firebase!");
+                // --- OPTIMIZACIÓN AQUÍ ---
+
+                // A. Actualizamos el contador visual y la variable interna
+                if (this.stats) {
+                    this.stats.clientes += 1;
+                    const counterElement = document.getElementById('count-clientes');
+                    if (counterElement) counterElement.innerText = this.stats.clientes;
+                }
+
+                // B. Inyectamos la fila manualmente (pasamos el ID que nos dio Firebase)
+                this.agregarFilaUI(datosCliente, resultado.id);
+
+                alert("¡Cliente guardado exitosamente!");
                 this.toggleModal(false);
-                this.cargarDatos(); // Refrescar la tabla
+
+                // C. Limpiar formulario (Opcional pero recomendado)
+                document.getElementById('form-crear-cliente').reset();
+
             } else {
                 alert("Error: " + resultado.message);
             }
