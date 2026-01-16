@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
 import os
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
@@ -112,6 +112,21 @@ def dashboard():
 def logout():
     session.clear() # Borra la cookie __session
     return redirect(url_for('index'))
+
+@app.route('/manifest.json')
+def manifest():
+    # Le dice a Flask que sirva el archivo desde la carpeta estática
+    return send_from_directory('static', 'manifest.json', mimetype='application/json')
+
+@app.route('/sw.js')
+def service_worker():
+    # El Service Worker TAMBIÉN debe servirse desde la raíz
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
+@app.route('/logo.png')
+def logo_root():
+    # Opcional: para que /logo.png funcione directo
+    return send_from_directory('static', 'logo.png', mimetype='image/png')
 
 if __name__ == "__main__":
     app.run(debug=True)

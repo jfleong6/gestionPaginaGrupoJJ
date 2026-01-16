@@ -2,32 +2,65 @@ class GestionProyecto {
     constructor(containerId, proyecto) {
         this.container = document.getElementById(containerId);
         this.p = proyecto;
-        this.seccionActual = 'info';
+        this.seccionActual = 'task'; // Por defecto iniciamos en tareas
         
         // Variables globales para persistencia de datos
         this.tareasGlobales = this.p.tareas || [];
         
-        // Inicializar los submódulos
+        // Inicializar los submódulos (Instancias)
         this.tareasManager = new GestionTareas(this.p.cliente_id, this.p.proyecto_id, this);
         this.notasManager = new GestionNotas(this.p.cliente_id, this.p.proyecto_id);
-
-        document.getElementById('section-title').innerHTML = 'Proyecto: <span class="section-title-proyecto">' + this.p.nombre_negocio + '</span>';
         this.infoManager = new GestionInformacion(this);
         this.pagosManager = new GestionPagos(this);
+
+        // Actualizar título del proyecto en el DOM externo si existe
+        const tituloEl = document.getElementById('section-title');
+        if (tituloEl) {
+            tituloEl.innerHTML = 'Proyecto: <span class="section-title-proyecto">' + this.p.nombre_negocio + '</span>';
+        }
     }
 
     init() {
+        // 1. Renderizar la estructura base HTML (Esqueleto)
         this.render();
-        this.tareasManager.init(); // Inicializa el tablero Kanban
+
+        // 2. Cargar TAREAS (Prioridad Inmediata)
+        // Inicializa el tablero Kanban para que el usuario lo vea al instante
+        this.tareasManager.init(); 
+        
+        // 3. Configurar los eventos de los botones y formularios
         this.setupGeneralEvents();
+
+        // 4. Carga diferida ("Segundo Plano")
+        // Usamos un pequeño delay para permitir que el navegador pinte las tareas primero.
+        // Luego cargamos Información y Pagos sin bloquear la interfaz.
+        setTimeout(() => {
+            this.cargarModulosSecundarios();
+        }, 100);
+    }
+
+    cargarModulosSecundarios() {
+        // Verifica si los managers tienen el método render y lo ejecuta
+        // Esto llenará los divs ocultos con su contenido correspondiente
+        if (this.infoManager && typeof this.infoManager.render === 'function') {
+            this.infoManager.render();
+        }
+        
+        if (this.pagosManager && typeof this.pagosManager.render === 'function') {
+            this.pagosManager.render();
+        } else {
+            // Fallback por si no usas un manager externo para pagos
+            this.loadPagosDefault();
+        }
     }
 
     render() {
+        // Renderizamos toda la estructura. Nota que los tabs info y pagos existen pero están ocultos (hidden)
         this.container.innerHTML = `
             <div class="gestion-container">
                 <div class="gestion-header">
                     <button class="tab-link gp-active" onclick="gp.cambiarTab(this, 'task')">Tareas</button>
-                    <button class="tab-link " onclick="gp.cambiarTab(this, 'info')">Información</button>
+                    <button class="tab-link" onclick="gp.cambiarTab(this, 'info')">Información</button>
                     <button class="tab-link" onclick="gp.cambiarTab(this, 'pagos')">Pagos</button>
                 </div>
                 
@@ -70,8 +103,13 @@ class GestionProyecto {
                     </div>
                 </div>
 
-                <div id="tab-info" class="gestion-content hidden" data-tab="info"><h2>Cargando informacion...</h2></div>
-                <div id="tab-pagos" class="gestion-content hidden" data-tab="pagos"><h2>Cargando pagos...</h2></div>
+                <div id="tab-info" class="gestion-content hidden" data-tab="info">
+                    <div class="loading-placeholder">Cargando información...</div>
+                </div>
+                
+                <div id="tab-pagos" class="gestion-content hidden" data-tab="pagos">
+                    <div class="loading-placeholder">Cargando pagos...</div>
+                </div>
             </div>
 
             <div id="modal-overlay-task" class="modal-overlay hidden">
@@ -130,20 +168,28 @@ class GestionProyecto {
     }
 
     cambiarTab(btn, tabName) {
+        // 1. Gestión visual de los botones (tabs)
         document.querySelectorAll('.tab-link').forEach(b => b.classList.remove('gp-active'));
         btn.classList.add('gp-active');
+
+        // 2. Gestión visual del contenido (ocultar todos, mostrar el seleccionado)
         document.querySelectorAll('.gestion-content').forEach(content => content.classList.add('hidden'));
         
         const target = document.getElementById(`tab-${tabName}`);
-        if (target) target.classList.remove('hidden');
+        if (target) {
+            target.classList.remove('hidden');
+        }
 
-        if (tabName === 'info') this.infoManager.render();
-        if (tabName === 'pagos') this.pagosManager.render();
-        if (tabName === 'task') this.tareasManager.loadTasks(this.tareasGlobales);
+        // NOTA: Aquí ya NO llamamos a render() ni a loadTasks().
+        // Todo el contenido ya fue cargado en el 'init' y persiste en el DOM oculto.
+        // Esto hace el cambio instantáneo.
     }
 
-    loadPagos() {
-        document.getElementById('tab-pagos').innerHTML = `
-            <div class="pagos-card"><h3>Historial de Pagos</h3></div>`;
+    // Método de respaldo por si no usas un modulo externo de pagos
+    loadPagosDefault() {
+        const pagosContainer = document.getElementById('tab-pagos');
+        if (pagosContainer) {
+            pagosContainer.innerHTML = `<div class="pagos-card"><h3>Historial de Pagos</h3></div>`;
+        }
     }
 }

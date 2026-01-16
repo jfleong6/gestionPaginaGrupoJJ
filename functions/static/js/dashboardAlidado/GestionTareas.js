@@ -3,6 +3,10 @@ class GestionTareas {
         this.clienteId = clienteId;
         this.proyectoId = proyectoId;
         this.parent = parent; // Referencia a GestionProyecto
+        console.log("----------------------------------------");
+        console.log(parent);
+        console.log("----------------------------------------");
+
         this.selectedPriority = 'medium';
         this.estados = ['todo', 'progress', 'approve', 'done'];
     }
@@ -105,7 +109,7 @@ class GestionTareas {
                 });
                 const data = await res.json();
                 if (res.ok && data.status === "success") {
-                    const nuevaTarea = { ...payload, id: data.tarea_id };
+                    const nuevaTarea = { ...payload, id: data.id_tarea };
                     this.parent.tareasGlobales.push(nuevaTarea); // Guardar en global
                     this.renderizarTarea(nuevaTarea);
                     this.cerrarModal();

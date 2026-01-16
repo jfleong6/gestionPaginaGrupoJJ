@@ -62,12 +62,9 @@ async function iniciarGestion(id_proyecto, id_cliente) {
     Object.values(secciones).forEach(section => {
         if (section) section.classList.add("hidden");
     });
-
     // 1. Buscamos los datos completos del proyecto
     const res = await fetch(`/aliado/obtener_proyecto/${id_proyecto}`);
-    console.log(res.status);
     const data = await res.json();
-    console.log(data);
     // 2. Iniciamos la clase POO (gp es global para acceder desde los onclick)
     window.gp = await new GestionProyecto('content-modulo-proyecto', data.proyecto);
     window.gp.init();

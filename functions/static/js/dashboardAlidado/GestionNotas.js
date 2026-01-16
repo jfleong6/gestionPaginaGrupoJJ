@@ -43,7 +43,6 @@ class GestionNotas {
                         if (!tarea.historial_notas) tarea.historial_notas = [];
                         tarea.historial_notas.push({ comentario: notaTexto, fecha: new Date() });
                     }
-                    
                     this.inyectarNotaVisual(this.currentTaskId, notaTexto);
                     this.actualizarContadorNotas(this.currentTaskId);
                     this.cerrarModalNota();

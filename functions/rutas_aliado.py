@@ -359,7 +359,6 @@ def agregar_tarea():
         print(f"Error al agregar tarea: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
     
-
 @aliado_bp.route('/agregar_nota', methods=['POST'])
 def agregar_nota():
     if 'user' not in session:
