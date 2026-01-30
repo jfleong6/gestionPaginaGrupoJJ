@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "gestioncontrol-grupojj"
-  }
+  },
+  "targets": {
+    "gestioncontrol-grupojj": {
+      "hosting": {
+        "gestion": [
+          "gestioncontrol-grupojj"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

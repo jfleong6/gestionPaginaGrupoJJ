@@ -1,32 +1,152 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin | Grupo JJ</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Grupo JJ">
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/logo.png">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/proyectos.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardAlidado/clientes.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.ico') }}" type="image/x-icon">
+
+    <style>
+        /* Estilo rápido para botones de acción del admin */
+        .btn-admin {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            transition: 0.3s;
+        }
+
+        .btn-bono {
+            background: #d97706;
+            color: white;
+        }
+
+        .btn-mío {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-ver {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-admin:hover {
+            opacity: 0.8;
+        }
+
+        .badge-aliado {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 
-<header class="header">
-    <h1>Panel de Administración</h1>
-    <a href="/logout" class="logout">Cerrar sesión</a>
-</header>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-circle" style="background: #1e293b;">AD</div>
+                <h2>Panel Admin</h2>
+            </div>
 
-<main class="content">
-    <p>Bienvenido, <strong>{{ datos.nombre }}</strong></p>
-    <p>Rol: <strong>{{ datos.role }}</strong></p>
+            <nav class="sidebar-nav">
+                <div class="nav-top">
+                    <a href="#" class="nav-link active" data-section="proyectos-admin">
+                        <i class="fa-solid fa-globe"></i> <span>Proyectos Globales</span>
+                    </a>
+                    <!-- <a href="#" class="nav-link" data-section="aliados">
+                        <i class="fa-solid fa-handshake"></i> <span>Aliados</span>
+                    </a> -->
+                </div>
 
+                <div class="nav-bottom">
+                    <div class="user-info">
+                        <div class="user-avatar" style="background: #ef4444;"><i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="user-details">
+                            <p class="user-name">{{ datos.nombre.capitalize() }}</p>
+                            <span class="user-role">Administrador</span>
+                        </div>
+                    </div>
+                    <a href="/logout" class="nav-link logout-btn">
+                        <i class="fa-solid fa-power-off"></i> <span>Cerrar sesión</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
 
-    <section class="card">
-        <h2>Gestión general</h2>
-        <p>Desde aquí podrás administrar usuarios, aliados y configuraciones del sistema.</p>
-    </section>
+        <main class="main-content">
+            <header class="top-bar">
+                <button id="toggle-sidebar" class="mobile-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 id="section-title">Proyectos Globales</h1>
+            </header>
 
-    <section class="card">
-        <h2>Estado del sistema</h2>
-        <p>Todo funciona correctamente.</p>
-    </section>
-</main>
+            <div id="content-proyectos-admin" class="content">
+                <div class="proyectos-section">
+                    <div class="section-header">
+                        <h3>Supervisión de toda la red</h3>
+                    </div>
 
+                    <div class="table-container"
+                        style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="text-align: left; border-bottom: 2px solid #f1f5f9;">
+                                    <th style="padding: 12px;">Negocio / Cliente</th>
+                                    <th>Aliado</th>
+                                    <th>Finanzas</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-proyectos-global">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div id="content-aliados" class="content hidden">
+                <div class="loader">Próximamente: Gestión de Aliados</div>
+            </div>
+
+            <div id="content-modulo-proyecto" class="content hidden">
+                <div class="loader">Cargando Kanban...</div>
+            </div> -->
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionPagos.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionInformacion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionNotas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionTareas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardAlidado/GestionProyecto.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/admin/admin_dashboard.js') }}"></script>
 </body>
+
 </html>

@@ -50,7 +50,9 @@ db = firestore.client()
 
 
 from rutas_aliado import aliado_bp
+from rutas_admin import admin_bp
 app.register_blueprint(aliado_bp, url_prefix='/aliado')
+app.register_blueprint(admin_bp, url_prefix='/admin')
 # --- Rutas ---
 
 @app.route('/')

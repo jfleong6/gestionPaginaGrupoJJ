@@ -214,7 +214,13 @@ def crear_proyecto(cliente_id):
             "cliente_id": cliente_id,
             "aliado_id": uid_aliado,
             "cliente_nombre": nombre_cliente, # Guardamos el nombre aquí también
-            "deuda": False
+            "deuda": False,
+            "finanzas": {
+                "cobro_inicial": cobro_inicial,
+                "mensualidad_base": mensualidad,
+                "saldo_a_favor": 0,
+                "historial_pagos": []
+            }
         })
 
         return jsonify({

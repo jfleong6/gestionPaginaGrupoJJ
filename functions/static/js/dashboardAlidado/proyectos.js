@@ -3,7 +3,16 @@
  * Arquitectura: POO (Programación Orientada a Objetos)
  * Estructura: Stepper (4 Etapas)
  */
-
+const opciones = { 
+    weekday: 'short', 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: false // Formato 24h
+};
 class ModuloProyectos {
     constructor(containerId) {
         this.container = containerId;
@@ -356,6 +365,10 @@ class ModuloProyectos {
     generarHTMLTarjeta(p) {
         // Aseguramos que deuda sea booleano para el ternario
         const esDeuda = p.deuda === true || p.deuda === "true";
+        const fechaObj = new Date(p.fecha_creacion);
+        let fechaFinal = new Intl.DateTimeFormat('es-ES', opciones).format(fechaObj);
+        fechaFinal = fechaFinal.charAt(0).toUpperCase() + fechaFinal.slice(1);
+
 
         return `
             <div class="proyecto-card fade-in"> <div class="card-header">
@@ -369,7 +382,7 @@ class ModuloProyectos {
                 </div>
                 <div class="project-details">
                     <p><i class="fa-solid fa-user"></i> ${p.cliente_nombre || 'Cliente'}</p>
-                    <p><i class="fa-solid fa-calendar"></i> ${new Date().toLocaleDateString()}</p>
+                    <p><i class="fa-solid fa-calendar"></i> ${fechaFinal}</p>
                 </div>
                 <div class="project-footer">
                     <span class="status-badge status-ok">${p.estado || 'Activo'}</span>

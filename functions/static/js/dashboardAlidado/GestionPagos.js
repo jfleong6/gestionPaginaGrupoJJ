@@ -80,7 +80,7 @@ class GestionPagos {
                             <tbody>
                                 ${historialOrdenado.length > 0 ? historialOrdenado.map(pago => `
                                     <tr>
-                                        <td>${pago.fecha ? new Date(pago.fecha).toLocaleDateString() : 'Reciente'}</td>
+                                        <td>${pago.fecha}</td>
                                         <td><strong>${pago.concepto}</strong></td>
                                         <td class="monto-tabla">$${pago.monto.toLocaleString()}</td>
                                         <td style="text-align: center;">
