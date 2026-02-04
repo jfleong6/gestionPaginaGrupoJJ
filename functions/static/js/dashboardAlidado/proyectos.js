@@ -3,13 +3,13 @@
  * Arquitectura: POO (Programación Orientada a Objetos)
  * Estructura: Stepper (4 Etapas)
  */
-const opciones = { 
-    weekday: 'short', 
-    year: 'numeric', 
-    month: 'short', 
+const opciones = {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
     day: 'numeric',
-    hour: '2-digit', 
-    minute: '2-digit', 
+    hour: '2-digit',
+    minute: '2-digit',
     second: '2-digit',
     hour12: false // Formato 24h
 };
@@ -314,8 +314,8 @@ class ModuloProyectos {
                     body: JSON.stringify(payload)
                 });
 
-                const data = await res.json();
 
+                const data = await res.json();
                 if (data.status === 'success') {
 
                     // --- INICIO OPTIMIZACIÓN UI (Sin recargar) ---
@@ -365,7 +365,12 @@ class ModuloProyectos {
     generarHTMLTarjeta(p) {
         // Aseguramos que deuda sea booleano para el ternario
         const esDeuda = p.deuda === true || p.deuda === "true";
-        const fechaObj = new Date(p.fecha_creacion);
+        let fechaObj = new Date(p.fecha_creacion);
+
+        if (!p.fecha_creacion || isNaN(fechaObj.getTime())) {
+            fechaObj = new Date();
+        }
+
         let fechaFinal = new Intl.DateTimeFormat('es-ES', opciones).format(fechaObj);
         fechaFinal = fechaFinal.charAt(0).toUpperCase() + fechaFinal.slice(1);
 
@@ -404,6 +409,7 @@ class ModuloProyectos {
      * Inyecta un nuevo proyecto al inicio de la grilla sin recargar
      */
     agregarProyectoUI(nuevoProyecto) {
+
         const grid = document.getElementById('grid-proyectos');
 
         // Si había un mensaje de "No hay proyectos" o loader, lo limpiamos

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from firebase_admin import firestore, storage
 from datetime import datetime
+import pytz
 import uuid
 from PIL import Image
 import io
@@ -135,6 +136,8 @@ def aplicar_excepcion():
     
 @admin_bp.route('/api/cron/cobro_mensual', methods=['GET', 'POST'])
 def cron_cobro_mensual():
+    zona_colombia = pytz.timezone("America/Bogota")
+    ahora = datetime.now(zona_colombia)
     # Seguridad: Solo el Cron de Google o tú como Admin pueden disparar esto
     is_cron = request.headers.get('X-Appengine-Cron') == 'true'
     if not is_cron and session.get('role') != 'admin':
@@ -143,8 +146,6 @@ def cron_cobro_mensual():
     try:
         proyectos_ref = db.collection('proyectos').stream()
         batch = db.batch()
-        
-        ahora = datetime.now()
         # Formato de fecha para el historial: 29/01/2026 19:15:00
         fecha_log = ahora.strftime("%d/%m/%Y %H:%M:%S")
         mes_anio = ahora.strftime('%m/%Y')
